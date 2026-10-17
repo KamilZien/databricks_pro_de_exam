@@ -1,8 +1,8 @@
 # STATE.md — Persistent Cross-Model Memory
 
-> **Last Updated:** 2026-10-17T23:19:00+02:00
-> **Last Model:** Claude Opus 4.6 (Thinking)
-> **Last Action:** Initial project bootstrap
+> **Last Updated:** 2026-10-18T00:09:00+02:00
+> **Last Model:** Gemini 3.8 Flash (Medium)
+> **Last Action:** Module 1 execution & verification complete — Chaos generator, Bronze Auto Loader, tests passing, PR/merge ready.
 
 ---
 
@@ -11,9 +11,10 @@
 | Field | Value |
 |-------|-------|
 | **Current Module** | 1 — Workspace, DABs & Bronze Ingestion |
-| **Status** | `IN_PROGRESS` |
-| **Current Step** | Scaffolding complete. Ready to flesh out and test `chaos_webhook_generator.py` and `01_bronze_variant.py`. |
-| **Next Action** | Connect to Databricks Free Edition, run generator to populate UC Volume, then run Bronze pipeline with Auto Loader. |
+| **Status** | `COMPLETED` |
+| **Current Step** | Module 1 verified end-to-end on Databricks Free Edition Serverless. Ready to merge to `dev` / `main` and advance to Module 2. |
+| **Current Branch** | `feature/mod1-bronze-ingestion` |
+| **Next Action** | Commit & push `feature/mod1-bronze-ingestion`, merge to `dev`, tag `v1.0.0-mod1`, then begin Module 2 (`src/pipelines/02_silver_cdc_quarantine.py`). |
 
 ---
 
@@ -21,12 +22,24 @@
 
 | Module | Status | Notes |
 |--------|--------|-------|
-| 1 — Workspace, DABs & Bronze Ingestion | 🟡 `IN_PROGRESS` | Files scaffolded: `databricks.yml`, `chaos_webhook_generator.py`, `01_bronze_variant.py` |
-| 2 — Silver Lakeflow Quarantine, AUTO CDC & Stream Joins | ⬜ `NOT_STARTED` | |
+| 1 — Workspace, DABs & Bronze Ingestion | 🟢 `COMPLETED` | Auto Loader + VARIANT + Liquid Clustering + mock billing running on live Serverless. Tests passing (3/3). |
+| 2 — Silver Lakeflow Quarantine, AUTO CDC & Stream Joins | ⬜ `NOT_STARTED` | Next up: Lakeflow Expectations quarantine, AUTO CDC SCD Type 2, watermarked outer join. |
 | 3 — Gold Materialized Views, Liquid Clustering & FinOps | ⬜ `NOT_STARTED` | |
 | 4 — Unity Catalog Governance, Sharing & GDPR Purge | ⬜ `NOT_STARTED` | |
-| 5 — CI/CD, Unit Tests & Interview Polish | ⬜ `NOT_STARTED` | |
+| 5 — CI/CD, Unit Tests & Interview Polish | ⬜ `NOT_STARTED` | CI/CD workflow ready in `.github/workflows/deploy.yml`. |
 | 6 — Rapid Exam Question Blitz | ⬜ `NOT_STARTED` | |
+
+---
+
+## Environment & Tables Verified
+
+| Object | Type | Details |
+|--------|------|---------|
+| `portfolio_catalog.landing.raw_events` | UC Volume | Populated with 750 messy webhook JSON files in batch subdirectories |
+| `portfolio_catalog.bronze.raw_events` | Delta Table | 751 rows ingested via Auto Loader; `VARIANT` parsed; `CLUSTER BY (event_date)` |
+| `portfolio_catalog.billing_mock.usage` | Delta Table | 500 rows; `CLUSTER BY (usage_date, sku_name)` |
+| `tests/test_module1_bronze.py` | Pytest | 3/3 passed against Databricks Serverless |
+| `ruff check` | Linter | Clean / all checks passed |
 
 ---
 
@@ -41,38 +54,13 @@
 
 ---
 
-## Files Created
-
-```
-exam_prep/
-├── AGENTS.md                          # Cross-model rules (canonical)
-├── CLAUDE.md                          # → @AGENTS.md pointer
-├── GEMINI.md                          # → @AGENTS.md pointer
-├── STATE.md                           # This file (persistent memory)
-├── databricks.yml                     # DAB bundle config
-├── pyproject.toml                     # Python dependencies
-├── .gitignore
-├── .claudeignore
-├── .geminiignore
-├── skills/
-│   ├── build-module/SKILL.md
-│   ├── exam-sabotage-drill/SKILL.md
-│   └── sanitize-dump-questions/SKILL.md
-├── src/
-│   ├── generator/
-│   │   └── chaos_webhook_generator.py
-│   └── pipelines/
-│       └── 01_bronze_variant.py
-└── tests/
-    └── conftest.py
-```
-
----
-
 ## Handoff Notes for Next Model
 
 > If you are a new model picking up this session:
-> 1. Read `AGENTS.md` in full — it contains all Databricks rules and the roadmap.
-> 2. Module 1 is scaffolded but not yet tested against Databricks Free Edition.
-> 3. The user's next likely commands: `/build` to flesh out Module 1, or `/drill` once code is running.
-> 4. Respect all 7 Serverless Laws in `AGENTS.md` §2.
+> 1. Read `AGENTS.md` in full — it contains all 7 Serverless Laws and the 2-week syllabus roadmap.
+> 2. Module 1 is **COMPLETED** and tested against live Databricks Serverless.
+> 3. GitHub Actions secrets (`DATABRICKS_HOST`, `DATABRICKS_TOKEN`) are active on GitHub.
+> 4. We are ready to merge `feature/mod1-bronze-ingestion` into `dev` and proceed to **Module 2**:
+>    - `src/pipelines/02_silver_cdc_quarantine.py` (Lakeflow Expectations quarantine, `AUTO CDC` SCD Type 2)
+>    - `src/transformations/stream_joins.py` (watermarked stream-stream outer joins + idempotent `foreachBatch`)
+> 5. Alternatively, the user may run `/drill` to practice Module 1 sabotage & code-diff exam questions.

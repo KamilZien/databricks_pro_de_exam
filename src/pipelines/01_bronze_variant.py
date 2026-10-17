@@ -152,7 +152,7 @@ def ingest_bronze_standalone(spark) -> None:
     )
 
     row_count = spark.table(BRONZE_TABLE).count()
-    print(f"✅ Bronze table {BRONZE_TABLE} now has {row_count} rows")
+    print(f"[SUCCESS] Bronze table {BRONZE_TABLE} now has {row_count} rows")
 
 
 # ===========================================================================
@@ -208,6 +208,9 @@ else:
 
 
 if __name__ == "__main__":
+    from dotenv import load_dotenv
+    load_dotenv()
+
     from databricks.connect import DatabricksSession
 
     spark = DatabricksSession.builder.serverless(True).getOrCreate()
