@@ -1,0 +1,51 @@
+[project]
+name = "databricks-serverless-finops-lakehouse"
+version = "0.1.0"
+description = "Senior DE portfolio project: FinOps Lakehouse on Databricks Free Edition Serverless"
+requires-python = ">=3.11"
+dependencies = [
+    "databricks-connect>=15.4",
+    "databricks-sdk>=0.38.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.8.0",
+    "sqlfluff>=3.3.0",
+    "sqlfluff-templater-dbt>=3.3.0",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "S", "B", "A", "C4", "SIM", "TCH"]
+ignore = [
+    "S101",   # Allow assert in tests
+    "S311",   # Standard random is fine for synthetic test data generators
+    "N812",   # Allow `import functions as F` — PySpark convention
+    "N999",   # Allow numeric-prefix module names (01_bronze_variant.py is DAB convention)
+    "SIM105", # Allow try-except-pass for idempotent resource creation
+    "S110",   # Allow try-except-pass for idempotent resource creation
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.sqlfluff.core]
+dialect = "databricks"
+templater = "raw"
+max_line_length = 120
+
+[tool.sqlfluff.rules.capitalisation.keywords]
+capitalisation_policy = "upper"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+    "integration: marks tests requiring Databricks connection (deselect with '-m \"not integration\"')",
+    "unit: marks pure unit tests",
+]

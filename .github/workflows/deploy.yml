@@ -1,0 +1,110 @@
+# CI/CD Pipeline for Databricks Asset Bundles
+# Branching strategy: feature/* → dev → main
+# dev branch: deploys to 'dev' DAB target
+# main branch: deploys to 'prod' DAB target (after tag)
+
+name: Databricks Bundle CI/CD
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  release:
+    types: [published]
+
+env:
+  DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+jobs:
+  # ──────────────────────────────────────────────────────────────
+  # Job 1: Lint & Unit Tests (runs on every push/PR)
+  # ──────────────────────────────────────────────────────────────
+  lint-and-test:
+    name: "Lint & Unit Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Ruff lint
+        run: ruff check src/ tests/
+
+      - name: Ruff format check
+        run: ruff format --check src/ tests/
+
+      - name: SQLFluff lint
+        run: sqlfluff lint src/ --dialect databricks || true
+
+      - name: Unit tests
+        run: pytest tests/ -m "not integration" -v --tb=short
+
+  # ──────────────────────────────────────────────────────────────
+  # Job 2: Validate DAB bundle (runs on every push/PR)
+  # ──────────────────────────────────────────────────────────────
+  validate-bundle:
+    name: "Validate DAB Bundle"
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Validate bundle (dev)
+        if: github.ref != 'refs/heads/main'
+        run: databricks bundle validate --target dev
+
+      - name: Validate bundle (prod)
+        if: github.ref == 'refs/heads/main'
+        run: databricks bundle validate --target prod
+
+  # ──────────────────────────────────────────────────────────────
+  # Job 3: Deploy to dev (only on push to dev branch)
+  # ──────────────────────────────────────────────────────────────
+  deploy-dev:
+    name: "Deploy to Dev"
+    runs-on: ubuntu-latest
+    needs: validate-bundle
+    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+    environment: development
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Deploy bundle to dev
+        run: databricks bundle deploy --target dev
+
+      - name: Run integration tests
+        run: |
+          pip install -e ".[dev]"
+          pytest tests/ -m integration -v --tb=short || true
+
+  # ──────────────────────────────────────────────────────────────
+  # Job 4: Deploy to prod (only on release/tag from main)
+  # ──────────────────────────────────────────────────────────────
+  deploy-prod:
+    name: "Deploy to Prod"
+    runs-on: ubuntu-latest
+    needs: validate-bundle
+    if: github.event_name == 'release'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Deploy bundle to prod
+        run: databricks bundle deploy --target prod

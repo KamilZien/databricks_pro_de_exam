@@ -1,0 +1,80 @@
+# databricks.yml — Databricks Asset Bundle (DAB) Configuration
+# Portfolio Project: databricks-serverless-finops-lakehouse
+#
+# Branching Strategy (DABs):
+#   main   → deploys to 'prod' target (validated, tagged releases)
+#   dev    → deploys to 'dev' target (development mode, prefixed resources)
+#   feature/* → developer branches, deploy via 'dev' target for testing
+#
+# Constraint: Free Edition allows 1 active Lakeflow pipeline → bundle Bronze + Silver.
+
+bundle:
+  name: databricks-serverless-finops-lakehouse
+
+variables:
+  catalog:
+    default: portfolio_catalog
+  landing_schema:
+    default: landing
+  bronze_schema:
+    default: bronze
+  silver_schema:
+    default: silver
+  gold_schema:
+    default: gold
+
+workspace:
+  host: https://dbc-400a320e-3bc6.cloud.databricks.com
+
+resources:
+  pipelines:
+    finops_lakehouse_pipeline:
+      name: "finops-lakehouse-bronze-silver"
+      # Single pipeline bundles Bronze + Silver (Free Edition limit: 1 active pipeline)
+      serverless: true
+      catalog: ${var.catalog}
+      target: ${var.bronze_schema}
+      channel: PREVIEW
+      continuous: false  # Triggered, not continuous — preserves Free Edition quota
+      libraries:
+        - notebook:
+            path: src/pipelines/01_bronze_variant.py
+        # Module 2 will add:
+        # - notebook:
+        #     path: src/pipelines/02_silver_cdc_quarantine.py
+      configuration:
+        spark.databricks.delta.enableDeletionVectors: "true"
+        spark.databricks.delta.enableChangeDataFeed: "true"
+
+  # Module 3 will add gold materialized views
+  # Module 5 will add CI/CD job definitions
+
+# ──────────────────────────────────────────────────────────────────────────
+# TARGETS — DAB deployment environments
+# ──────────────────────────────────────────────────────────────────────────
+# 'dev' target:  development mode (resource name prefix [dev ${workspace.current_user.short_name}])
+#                Deployed from: dev branch, feature/* branches
+#                Command:  databricks bundle deploy --target dev --profile EXAM_PREP
+#
+# 'prod' target: production mode (no prefix, validated code only)
+#                Deployed from: main branch (after PR merge + tag)
+#                Command:  databricks bundle deploy --target prod --profile EXAM_PREP
+# ──────────────────────────────────────────────────────────────────────────
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-400a320e-3bc6.cloud.databricks.com
+      root_path: /Workspace/Users/chinskagiera123@gmail.com/databricks_pro_de_exam/.bundle/${bundle.name}/${bundle.target}
+
+  prod:
+    mode: production
+    workspace:
+      host: https://dbc-400a320e-3bc6.cloud.databricks.com
+      root_path: /Workspace/Users/chinskagiera123@gmail.com/databricks_pro_de_exam/.bundle/${bundle.name}/${bundle.target}
+    # In production, require explicit permissions
+    permissions:
+      - user_name: chinskagiera123@gmail.com
+        level: CAN_MANAGE

@@ -1,0 +1,15 @@
+# Claude ignore — skip noisy/sensitive paths
+__pycache__/
+.venv/
+venv/
+.pytest_cache/
+.databricks/
+dist/
+build/
+*.egg-info/
+.env
+.env.local
+*.pem
+*.key
+htmlcov/
+.coverage
