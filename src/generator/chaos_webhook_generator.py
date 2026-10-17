@@ -150,7 +150,7 @@ def write_events_to_volume(spark, events: list[dict]) -> str:
         file_path = f"{batch_dir}/event_{i:06d}.json"
         dbutils.fs.put(file_path, json.dumps(event), overwrite=True)
 
-    print(f"✅ Wrote {len(events)} events to {batch_dir}")
+    print(f"[SUCCESS] Wrote {len(events)} events to {batch_dir}")
     return batch_dir
 
 
@@ -223,7 +223,7 @@ def create_mock_billing_table(spark, num_rows: int = 500) -> None:
     # Apply Liquid Clustering after table creation
     spark.sql(f"ALTER TABLE {BILLING_TABLE} CLUSTER BY (usage_date, sku_name)")
 
-    print(f"✅ Created mock billing table {BILLING_TABLE} with {num_rows} rows")
+    print(f"[SUCCESS] Created mock billing table {BILLING_TABLE} with {num_rows} rows")
 
 
 # ---------------------------------------------------------------------------
@@ -234,6 +234,9 @@ def main():
     Run the chaos generator: create events and write to UC Volume.
     Optionally create mock billing table.
     """
+    from dotenv import load_dotenv
+    load_dotenv()
+
     from databricks.connect import DatabricksSession
 
     spark = DatabricksSession.builder.serverless(True).getOrCreate()
