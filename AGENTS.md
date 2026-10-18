@@ -15,7 +15,20 @@
 
 ---
 
-## 2. STRICT 2026 SERVERLESS & EXAM LAWS
+## 2. PEDAGOGICAL MANDATE (TEACH FIRST, CODE SECOND)
+
+Every model MUST follow this teaching contract:
+1. **Never jump straight into code, drills, or quizzes without first explaining the underlying architecture, options, and tradeoffs.**
+2. **Explain Concepts Like an Engineer:** When introducing a concept (e.g., Quarantine patterns, Change Data Feed, Watermarks), explain:
+   - *What problem it solves in production.*
+   - *The concrete architectural options/types (e.g., Drop vs. Fail vs. Quarantine).*
+   - *How it is configured in Databricks with real SQL/Python syntax.*
+   - *How the user can inspect/verify it in their workspace.*
+3. **Only after the user understands and confirms** do you proceed to code drills, sabotage tasks, or multiple-choice questions.
+
+---
+
+## 3. STRICT 2026 SERVERLESS & EXAM LAWS
 
 Every line of code and quiz question MUST adhere to these official rules:
 
