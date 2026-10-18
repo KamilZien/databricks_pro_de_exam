@@ -21,9 +21,9 @@
 
 | Section | Weight | Diagnostic Score | Weak Objectives Logged | Status |
 |---|---|---|---|---|
-| **Section 1: Developing Code** | 23% | Not Diagnosed | None yet | 🟡 Ready for `/orient Section 1` & `/diagnose Section 1` |
-| **Section 2: Data Ingestion & Acquisition** | 12% | Not Diagnosed | None yet | ⬜ Pending |
-| **Section 3: Data Manipulation** | 12% | Not Diagnosed | None yet | ⬜ Pending |
+| **Section 1: Developing Code** | 23% | Subpoint 1.1 Completed | 1.1 Verified (Modular DABs) | 🟡 `1.2 NEXT` (Dependency Troubleshooting) |
+| **Section 2: Data Ingestion & Acquisition** | 12% | Queued | To be covered after Section 1 | ⬜ Pending |
+| **Section 3: Data Manipulation** | 12% | Queued | To be covered after Section 2 | ⬜ Pending |
 | **Section 4: Monitoring and Alerting** | 10% | Not Diagnosed | None yet | ⬜ Pending |
 | **Section 5: Cost & Performance Optimization** | 15% | Not Diagnosed | None yet | ⬜ Pending |
 | **Section 6: Security and Compliance** | 8% | Not Diagnosed | None yet | ⬜ Pending |

@@ -26,28 +26,8 @@ variables:
 workspace:
   host: https://dbc-400a320e-3bc6.cloud.databricks.com
 
-resources:
-  pipelines:
-    finops_lakehouse_pipeline:
-      name: "finops-lakehouse-bronze-silver"
-      # Single pipeline bundles Bronze + Silver (Free Edition limit: 1 active pipeline)
-      serverless: true
-      catalog: ${var.catalog}
-      target: ${var.bronze_schema}
-      channel: PREVIEW
-      continuous: false  # Triggered, not continuous — preserves Free Edition quota
-      libraries:
-        - file:
-            path: src/pipelines/01_bronze_variant.py
-        # Module 2 will add:
-        # - notebook:
-        #     path: src/pipelines/02_silver_cdc_quarantine.py
-      configuration:
-        spark.databricks.delta.enableDeletionVectors: "true"
-        spark.databricks.delta.enableChangeDataFeed: "true"
-
-  # Module 3 will add gold materialized views
-  # Module 5 will add CI/CD job definitions
+include:
+  - resources/*.yml
 
 # ──────────────────────────────────────────────────────────────────────────
 # TARGETS — DAB deployment environments

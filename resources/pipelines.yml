@@ -1,0 +1,18 @@
+# resources/pipelines.yml — Lakeflow Declarative Pipeline Definitions
+# Modularized resource file included by databricks.yml
+
+resources:
+  pipelines:
+    finops_lakehouse_pipeline:
+      name: "finops-lakehouse-bronze-silver"
+      serverless: true
+      catalog: ${var.catalog}
+      target: ${var.bronze_schema}
+      channel: PREVIEW
+      continuous: false  # Triggered execution to protect Free Edition quota
+      libraries:
+        - file:
+            path: ../src/pipelines/01_bronze_variant.py
+      configuration:
+        spark.databricks.delta.enableDeletionVectors: "true"
+        spark.databricks.delta.enableChangeDataFeed: "true"
