@@ -1,66 +1,54 @@
-# STATE.md — Persistent Cross-Model Memory
+# STATE.md — Persistent Cross-Model Memory & 14-Day Sprint Tracker
 
-> **Last Updated:** 2026-10-18T00:09:00+02:00
-> **Last Model:** Gemini 3.8 Flash (Medium)
-> **Last Action:** Module 1 execution & verification complete — Chaos generator, Bronze Auto Loader, tests passing, PR/merge ready.
-
----
-
-## Active Module
-
-| Field | Value |
-|-------|-------|
-| **Current Module** | 1 — Workspace, DABs & Bronze Ingestion |
-| **Status** | `COMPLETED` |
-| **Current Step** | Module 1 verified end-to-end on Databricks Free Edition Serverless. Ready to merge to `dev` / `main` and advance to Module 2. |
-| **Current Branch** | `feature/mod1-bronze-ingestion` |
-| **Next Action** | Commit & push `feature/mod1-bronze-ingestion`, merge to `dev`, tag `v1.0.0-mod1`, then begin Module 2 (`src/pipelines/02_silver_cdc_quarantine.py`). |
+> **Last Updated:** 2026-10-18T12:38:00+02:00
+> **Sprint Progress:** Day 1 of 14
+> **Sprint Phase:** Phase 1 — Diagnostic & Scaffolding (Days 1–3)
+> **Active Target:** Section 1: Developing Code for Data Processing using Python and SQL (23%)
 
 ---
 
-## Module Progress Tracker
+## 1. 14-DAY SPRINT ROADMAP & STATUS
 
-| Module | Status | Notes |
-|--------|--------|-------|
-| 1 — Workspace, DABs & Bronze Ingestion | 🟢 `COMPLETED` | Auto Loader + VARIANT + Liquid Clustering + mock billing running on live Serverless. Tests passing (3/3). |
-| 2 — Silver Lakeflow Quarantine, AUTO CDC & Stream Joins | ⬜ `NOT_STARTED` | Next up: Lakeflow Expectations quarantine, AUTO CDC SCD Type 2, watermarked outer join. |
-| 3 — Gold Materialized Views, Liquid Clustering & FinOps | ⬜ `NOT_STARTED` | |
-| 4 — Unity Catalog Governance, Sharing & GDPR Purge | ⬜ `NOT_STARTED` | |
-| 5 — CI/CD, Unit Tests & Interview Polish | ⬜ `NOT_STARTED` | CI/CD workflow ready in `.github/workflows/deploy.yml`. |
-| 6 — Rapid Exam Question Blitz | ⬜ `NOT_STARTED` | |
+| Days | Phase | Target Focus | Status |
+|---|---|---|---|
+| **Days 1–3** | Phase 1: Diagnostics & Scaffolding | Diagnose Sections 1–9, Build Bronze/Silver pipelines | 🟡 `IN_PROGRESS` (Day 1) |
+| **Days 4–10** | Phase 2: Deep-Dive & Advanced Portfolio | Deep-dive weak objectives, Gold MVs, FinOps, Metric Views, ABAC, CI/CD | ⬜ `NOT_STARTED` |
+| **Days 11–14** | Phase 3: Full Mock Blitz & Repair | Weighted full mocks (60 questions), 10-sec elimination drills, Repair loop | ⬜ `NOT_STARTED` |
 
 ---
 
-## Environment & Tables Verified
+## 2. 9-SECTION DIAGNOSTIC SCORECARD
 
-| Object | Type | Details |
-|--------|------|---------|
-| `portfolio_catalog.landing.raw_events` | UC Volume | Populated with 750 messy webhook JSON files in batch subdirectories |
-| `portfolio_catalog.bronze.raw_events` | Delta Table | 751 rows ingested via Auto Loader; `VARIANT` parsed; `CLUSTER BY (event_date)` |
-| `portfolio_catalog.billing_mock.usage` | Delta Table | 500 rows; `CLUSTER BY (usage_date, sku_name)` |
-| `tests/test_module1_bronze.py` | Pytest | 3/3 passed against Databricks Serverless |
-| `ruff check` | Linter | Clean / all checks passed |
-
----
-
-## Exam Drill Stats
-
-| Metric | Value |
-|--------|-------|
-| Sabotage Drills Completed | 0 |
-| Code-Diff Quizzes Answered | 0 |
-| Dump Questions Sanitized | 0 |
-| Accuracy Rate | N/A |
+| Section | Weight | Diagnostic Score | Weak Objectives Logged | Status |
+|---|---|---|---|---|
+| **Section 1: Developing Code** | 23% | Not Diagnosed | None yet | 🟡 Ready for `/orient Section 1` & `/diagnose Section 1` |
+| **Section 2: Data Ingestion & Acquisition** | 12% | Not Diagnosed | None yet | ⬜ Pending |
+| **Section 3: Data Manipulation** | 12% | Not Diagnosed | None yet | ⬜ Pending |
+| **Section 4: Monitoring and Alerting** | 10% | Not Diagnosed | None yet | ⬜ Pending |
+| **Section 5: Cost & Performance Optimization** | 15% | Not Diagnosed | None yet | ⬜ Pending |
+| **Section 6: Security and Compliance** | 8% | Not Diagnosed | None yet | ⬜ Pending |
+| **Section 7: Data Governance** | 5% | Not Diagnosed | None yet | ⬜ Pending |
+| **Section 8: Debugging and Deploying** | 10% | Not Diagnosed | None yet | ⬜ Pending |
+| **Section 9: Data Modeling** | 5% | Not Diagnosed | None yet | ⬜ Pending |
 
 ---
 
-## Handoff Notes for Next Model
+## 3. PORTFOLIO & REPO VERIFICATION
 
-> If you are a new model picking up this session:
-> 1. Read `AGENTS.md` in full — it contains all 7 Serverless Laws and the 2-week syllabus roadmap.
-> 2. Module 1 is **COMPLETED** and tested against live Databricks Serverless.
-> 3. GitHub Actions secrets (`DATABRICKS_HOST`, `DATABRICKS_TOKEN`) are active on GitHub.
-> 4. We are ready to merge `feature/mod1-bronze-ingestion` into `dev` and proceed to **Module 2**:
->    - `src/pipelines/02_silver_cdc_quarantine.py` (Lakeflow Expectations quarantine, `AUTO CDC` SCD Type 2)
->    - `src/transformations/stream_joins.py` (watermarked stream-stream outer joins + idempotent `foreachBatch`)
-> 5. Alternatively, the user may run `/drill` to practice Module 1 sabotage & code-diff exam questions.
+| Asset | Type | Status | Exam Alignment |
+|---|---|---|---|
+| `databricks.yml` | Declarative Automation Bundle | ✅ Configured | Section 1.1, 8.3 |
+| Lakeflow Pipeline | `[dev chinskagiera123] finops-lakehouse-bronze-silver` | ✅ Deployed (ID: 6057c8b8-c8b1-4889-9ce4-a4e16f8b3a1a) | Section 1.4, 8.3 |
+| `src/generator/chaos_webhook_generator.py` | Volume Data Generator | ✅ Executed (750 rows in UC Volume) | Section 2.1, 3.2 |
+| `portfolio_catalog.bronze.raw_events` | Delta Table | ✅ Ingested (751 rows, VARIANT, Liquid Clustering) | Section 1.4, 3.2, 5.2 |
+| `portfolio_catalog.billing_mock.usage` | Delta Table | ✅ Ingested (500 rows, Liquid Clustering) | Section 4.1, 5.2 |
+| `tests/test_module1_bronze.py` | Pytest Integration Test | ✅ Passed (3/3) | Section 1.11 |
+| `tests/test_exam_drill.py` | Sabotage Drill Test | ✅ Fixed & Passed (1/1) | Section 1.10, 5.2, 5.3 |
+
+---
+
+## 4. HANDOFF NOTES FOR ALL MODELS
+
+> - All models MUST ground explanations in official Databricks docs (`https://docs.databricks.com/...`).
+> - We are on **Day 1**. The immediate next step is **`/orient Section 1`** followed by **`/diagnose Section 1`**.
+> - Remember the Renamed Products table in `EXAM_GUIDE.md` §1 (e.g., Lakeflow Pipelines, AUTO CDC, OpenSharing, Metric Views).

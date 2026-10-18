@@ -9,7 +9,7 @@
 # Constraint: Free Edition allows 1 active Lakeflow pipeline → bundle Bronze + Silver.
 
 bundle:
-  name: databricks-serverless-finops-lakehouse
+  name: databricks_pro_de_exam
 
 variables:
   catalog:
@@ -37,7 +37,7 @@ resources:
       channel: PREVIEW
       continuous: false  # Triggered, not continuous — preserves Free Edition quota
       libraries:
-        - notebook:
+        - file:
             path: src/pipelines/01_bronze_variant.py
         # Module 2 will add:
         # - notebook:
