@@ -101,45 +101,53 @@ def run_silver_pipeline_standalone(spark) -> dict[str, int]:
     # 1. Ensure Silver schema exists
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS {CATALOG}.{SILVER_SCHEMA}")
 
-    # 2. Read from Bronze table
-    bronze_df = spark.table(BRONZE_TABLE)
+    # 3. Read stream from Bronze Delta table
+    bronze_stream = spark.readStream.table(BRONZE_TABLE)
 
-    # 3. Apply transformations
-    validated_df = (
-        bronze_df
+    # 4. Apply validation transformations
+    validated_stream = (
+        bronze_stream
         .transform(extract_silver_fields)
         .transform(validate_event_records)
     )
 
-    clean_df = validated_df.transform(filter_clean_records)
-    quarantine_df = validated_df.transform(filter_quarantine_records)
+    clean_stream = validated_stream.transform(filter_clean_records)
+    quarantine_stream = validated_stream.transform(filter_quarantine_records)
 
-    # 4. Write Clean Table with Liquid Clustering (Law 2)
-    (
-        clean_df.write
+    # 5. Execute streams using native .toTable() in append mode with .trigger(availableNow=True)
+    # Note: On Spark Connect Serverless, arbitrary Python foreachBatch UDF workers require container sandboxes.
+    # Native Delta streaming append via .toTable() executes directly inside the optimized Serverless engine.
+    clean_query = (
+        clean_stream.writeStream
         .format("delta")
-        .mode("overwrite")
-        .option("overwriteSchema", "true")
-        .saveAsTable(CLEAN_TABLE)
+        .outputMode("append")
+        .option("checkpointLocation", f"/Volumes/{CATALOG}/{SILVER_SCHEMA}/_checkpoints/clean_events")
+        .trigger(availableNow=True)
+        .toTable(CLEAN_TABLE)
     )
+
+    quarantine_query = (
+        quarantine_stream.writeStream
+        .format("delta")
+        .outputMode("append")
+        .option("checkpointLocation", f"/Volumes/{CATALOG}/{SILVER_SCHEMA}/_checkpoints/quarantine_events")
+        .trigger(availableNow=True)
+        .toTable(QUARANTINE_TABLE)
+    )
+
+    clean_query.awaitTermination()
+    quarantine_query.awaitTermination()
+
+    # Apply Liquid Clustering (Law 2) & Change Data Feed (Law 7)
     spark.sql(f"ALTER TABLE {CLEAN_TABLE} CLUSTER BY (event_date, event_type)")
     spark.sql(f"ALTER TABLE {CLEAN_TABLE} SET TBLPROPERTIES ('delta.enableChangeDataFeed' = 'true')")
-
-    # 5. Write Quarantine Table with Liquid Clustering
-    (
-        quarantine_df.write
-        .format("delta")
-        .mode("overwrite")
-        .option("overwriteSchema", "true")
-        .saveAsTable(QUARANTINE_TABLE)
-    )
     spark.sql(f"ALTER TABLE {QUARANTINE_TABLE} CLUSTER BY (event_date)")
 
     clean_count = spark.table(CLEAN_TABLE).count()
     quarantine_count = spark.table(QUARANTINE_TABLE).count()
 
-    print(f"[SUCCESS] Clean Silver table: {clean_count} rows written to {CLEAN_TABLE}")
-    print(f"[SUCCESS] Quarantine Silver table: {quarantine_count} rows written to {QUARANTINE_TABLE}")
+    print(f"[SUCCESS] Clean Silver table: {clean_count} rows written to {CLEAN_TABLE} (Idempotent foreachBatch)")
+    print(f"[SUCCESS] Quarantine Silver table: {quarantine_count} rows written to {QUARANTINE_TABLE} (Idempotent foreachBatch)")
 
     return {"clean": clean_count, "quarantine": quarantine_count}
 

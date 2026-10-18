@@ -46,7 +46,8 @@
 | `portfolio_catalog.billing_mock.usage` | Delta Table | ✅ Ingested (500 rows, Liquid Clustering) | Section 4.1, 5.2 |
 | `tests/test_module1_bronze.py` | Pytest Integration Test | ✅ Passed (3/3) | Section 1.11 |
 | `tests/test_module2_silver.py` | Pytest Integration Test | ✅ Passed (2/2) | Section 1.11, 3.4 |
-| `tests/test_exam_drill.py` | Sabotage Drill Test | ✅ Fixed & Passed (1/1) | Section 1.10, 5.2, 5.3 |
+| `tests/test_exam_drill.py` | Module 1 Sabotage Drill Test | ✅ Fixed & Passed (1/1) | Section 1.10, 5.2, 5.3 |
+| `tests/test_silver_sabotage_drill.py` | Module 2 Sabotage Drill Test | 🟡 Injected (Pending user fix) | Section 3.4, 5.4 |
 
 ---
 
