@@ -41,8 +41,11 @@
 | Lakeflow Pipeline | `[dev chinskagiera123] finops-lakehouse-bronze-silver` | ✅ Deployed (ID: 6057c8b8-c8b1-4889-9ce4-a4e16f8b3a1a) | Section 1.4, 8.3 |
 | `src/generator/chaos_webhook_generator.py` | Volume Data Generator | ✅ Executed (750 rows in UC Volume) | Section 2.1, 3.2 |
 | `portfolio_catalog.bronze.raw_events` | Delta Table | ✅ Ingested (751 rows, VARIANT, Liquid Clustering) | Section 1.4, 3.2, 5.2 |
+| `portfolio_catalog.silver.clean_events` | Delta Table | ✅ Ingested (693 clean rows, Liquid Clustering, CDF) | Section 1.4, 3.4, 5.2 |
+| `portfolio_catalog.silver.quarantine_events` | Delta Table | ✅ Ingested (58 quarantined rows with reason tags) | Section 3.4 |
 | `portfolio_catalog.billing_mock.usage` | Delta Table | ✅ Ingested (500 rows, Liquid Clustering) | Section 4.1, 5.2 |
 | `tests/test_module1_bronze.py` | Pytest Integration Test | ✅ Passed (3/3) | Section 1.11 |
+| `tests/test_module2_silver.py` | Pytest Integration Test | ✅ Passed (2/2) | Section 1.11, 3.4 |
 | `tests/test_exam_drill.py` | Sabotage Drill Test | ✅ Fixed & Passed (1/1) | Section 1.10, 5.2, 5.3 |
 
 ---
