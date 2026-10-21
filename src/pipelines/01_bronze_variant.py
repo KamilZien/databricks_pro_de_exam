@@ -35,6 +35,7 @@ def _is_lakeflow_context() -> bool:
     """Check if we're running inside a Lakeflow/DLT pipeline."""
     try:
         import dlt  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -75,10 +76,7 @@ def define_lakeflow_tables():
             # Parse entire JSON body into VARIANT column (Law 5)
             .withColumn("raw_variant", F.expr("parse_json(to_json(struct(*)))"))
             # Extract event_date for clustering
-            .withColumn(
-                "event_date",
-                F.to_date(F.col("timestamp"))
-            )
+            .withColumn("event_date", F.to_date(F.col("timestamp")))
             # Capture Auto Loader file metadata for lineage
             .withColumn("_source_file", F.col("_metadata.file_path"))
             .withColumn("_ingested_at", F.current_timestamp())
@@ -105,8 +103,7 @@ def ingest_bronze_standalone(spark) -> None:
 
     # Read from UC Volume using Auto Loader (cloudFiles)
     raw_stream = (
-        spark.readStream
-        .format("cloudFiles")
+        spark.readStream.format("cloudFiles")
         .option("cloudFiles.format", "json")
         .option("cloudFiles.inferColumnTypes", "false")
         .option("cloudFiles.schemaEvolutionMode", "addNewColumns")
@@ -119,18 +116,14 @@ def ingest_bronze_standalone(spark) -> None:
 
     # Transform: parse into VARIANT + add metadata columns
     bronze_df = (
-        raw_stream
-        .transform(add_variant_column)
-        .transform(add_event_date_column)
-        .transform(add_ingestion_metadata)
+        raw_stream.transform(add_variant_column).transform(add_event_date_column).transform(add_ingestion_metadata)
     )
 
     # Write to Bronze Delta table
     # .trigger(availableNow=True) → process all available, then stop (Law 3)
     # NEVER use Trigger.ProcessingTime on Serverless
     query = (
-        bronze_df.writeStream
-        .format("delta")
+        bronze_df.writeStream.format("delta")
         .outputMode("append")
         .option(
             "checkpointLocation",
@@ -146,10 +139,7 @@ def ingest_bronze_standalone(spark) -> None:
     spark.sql(f"ALTER TABLE {BRONZE_TABLE} CLUSTER BY (event_date)")
 
     # Enable CDF for downstream consumers (Law 7)
-    spark.sql(
-        f"ALTER TABLE {BRONZE_TABLE} "
-        f"SET TBLPROPERTIES ('delta.enableChangeDataFeed' = 'true')"
-    )
+    spark.sql(f"ALTER TABLE {BRONZE_TABLE} SET TBLPROPERTIES ('delta.enableChangeDataFeed' = 'true')")
 
     row_count = spark.table(BRONZE_TABLE).count()
     print(f"[SUCCESS] Bronze table {BRONZE_TABLE} now has {row_count} rows")
@@ -189,11 +179,7 @@ def add_ingestion_metadata(df):
     """
     from pyspark.sql import functions as F
 
-    return (
-        df
-        .withColumn("_source_file", F.col("_metadata.file_path"))
-        .withColumn("_ingested_at", F.current_timestamp())
-    )
+    return df.withColumn("_source_file", F.col("_metadata.file_path")).withColumn("_ingested_at", F.current_timestamp())
 
 
 # ---------------------------------------------------------------------------
@@ -209,6 +195,7 @@ else:
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
 
     from databricks.connect import DatabricksSession

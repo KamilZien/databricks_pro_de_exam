@@ -30,14 +30,28 @@ VOLUME_PATH = f"/Volumes/{CATALOG}/{LANDING_SCHEMA}/{VOLUME_NAME}"
 BILLING_SCHEMA = "billing_mock"
 BILLING_TABLE = f"{CATALOG}.{BILLING_SCHEMA}.usage"
 
-EVENT_TYPES = ["payment.completed", "payment.failed", "refund.initiated",
-               "account.created", "account.updated", "kyc.verified"]
+EVENT_TYPES = [
+    "payment.completed",
+    "payment.failed",
+    "refund.initiated",
+    "account.created",
+    "account.updated",
+    "kyc.verified",
+]
 
 CURRENCIES = ["USD", "EUR", "GBP", "JPY", "PLN"]
 
 # PII fields — will exercise GDPR purge in Module 4
-FAKE_NAMES = ["Alice Smith", "Bob Nowak", "Celine Dubois", "Daichi Tanaka",
-              "Eva Müller", "Farid Khan", "Greta Johansson", "Hugo Silva"]
+FAKE_NAMES = [
+    "Alice Smith",
+    "Bob Nowak",
+    "Celine Dubois",
+    "Daichi Tanaka",
+    "Eva Müller",
+    "Farid Khan",
+    "Greta Johansson",
+    "Hugo Silva",
+]
 
 FAKE_EMAILS = [f"{n.split()[0].lower()}@example.com" for n in FAKE_NAMES]
 
@@ -88,7 +102,7 @@ def generate_chaos_event(event_id: int, base_ts: datetime) -> dict:
     if random.random() > 0.2:
         meta = {"source": random.choice(["mobile_app", "web", "api", "partner_sdk"])}
         if random.random() > 0.5:
-            meta["ip_address"] = f"192.168.{random.randint(0,255)}.{random.randint(1,254)}"
+            meta["ip_address"] = f"192.168.{random.randint(0, 255)}.{random.randint(1, 254)}"
         if random.random() > 0.7:
             meta["device"] = random.choice(["iOS", "Android", "Desktop", None])
         event["metadata"] = meta
@@ -176,9 +190,12 @@ def create_mock_billing_table(spark, num_rows: int = 500) -> None:
     )
 
     sku_names = [
-        "SERVERLESS_SQL_COMPUTE", "SERVERLESS_DLT_COMPUTE",
-        "JOBS_COMPUTE", "INTERACTIVE_COMPUTE",
-        "SERVERLESS_REALTIME_INFERENCE", "STORAGE",
+        "SERVERLESS_SQL_COMPUTE",
+        "SERVERLESS_DLT_COMPUTE",
+        "JOBS_COMPUTE",
+        "INTERACTIVE_COMPUTE",
+        "SERVERLESS_REALTIME_INFERENCE",
+        "STORAGE",
     ]
 
     rows = []
@@ -186,39 +203,35 @@ def create_mock_billing_table(spark, num_rows: int = 500) -> None:
     for i in range(num_rows):
         day_offset = i % 30
         usage_date = (base_date + timedelta(days=day_offset)).strftime("%Y-%m-%d")
-        rows.append((
-            usage_date,
-            f"ws_{random.randint(1, 3):03d}",
-            random.choice(sku_names),
-            "DBU",
-            round(random.uniform(0.1, 50.0), 4),
-            f"pipeline_{random.randint(1, 5)}",
-        ))
+        rows.append(
+            (
+                usage_date,
+                f"ws_{random.randint(1, 3):03d}",
+                random.choice(sku_names),
+                "DBU",
+                round(random.uniform(0.1, 50.0), 4),
+                f"pipeline_{random.randint(1, 5)}",
+            )
+        )
 
-    schema = StructType([
-        StructField("usage_date", StringType(), False),
-        StructField("workspace_id", StringType(), False),
-        StructField("sku_name", StringType(), False),
-        StructField("usage_unit", StringType(), False),
-        StructField("usage_quantity", DoubleType(), False),
-        StructField("usage_metadata_job_id", StringType(), True),
-    ])
-
-    df = spark.createDataFrame(rows, schema).withColumn(
-        "usage_date", F.col("usage_date").cast(DateType())
+    schema = StructType(
+        [
+            StructField("usage_date", StringType(), False),
+            StructField("workspace_id", StringType(), False),
+            StructField("sku_name", StringType(), False),
+            StructField("usage_unit", StringType(), False),
+            StructField("usage_quantity", DoubleType(), False),
+            StructField("usage_metadata_job_id", StringType(), True),
+        ]
     )
+
+    df = spark.createDataFrame(rows, schema).withColumn("usage_date", F.col("usage_date").cast(DateType()))
 
     # Create schema if needed
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS {CATALOG}.{BILLING_SCHEMA}")
 
     # Write with Liquid Clustering (Law 2) — NEVER PARTITION BY
-    (
-        df.write
-        .format("delta")
-        .mode("overwrite")
-        .option("overwriteSchema", "true")
-        .saveAsTable(BILLING_TABLE)
-    )
+    (df.write.format("delta").mode("overwrite").option("overwriteSchema", "true").saveAsTable(BILLING_TABLE))
 
     # Apply Liquid Clustering after table creation
     spark.sql(f"ALTER TABLE {BILLING_TABLE} CLUSTER BY (usage_date, sku_name)")
@@ -235,6 +248,7 @@ def main():
     Optionally create mock billing table.
     """
     from dotenv import load_dotenv
+
     load_dotenv()
 
     from databricks.connect import DatabricksSession

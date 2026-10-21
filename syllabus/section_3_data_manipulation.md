@@ -86,10 +86,9 @@ SELECT * FROM table_changes('portfolio_catalog.silver.clean_events', '2026-10-18
 ```python
 # Streaming or Batch read of Delta Change Data Feed
 changes_df = (
-    spark.readStream  # or spark.read
-    .format("delta")
-    .option("readChangeFeed", "true")   # <--- THE OFFICIAL EXAM KEYWORD
-    .option("startingVersion", 0)       # or startingTimestamp
+    spark.readStream.format("delta")  # or spark.read
+    .option("readChangeFeed", "true")  # <--- THE OFFICIAL EXAM KEYWORD
+    .option("startingVersion", 0)  # or startingTimestamp
     .table("portfolio_catalog.silver.clean_events")
 )
 ```

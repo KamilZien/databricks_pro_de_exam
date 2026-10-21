@@ -48,8 +48,7 @@ def test_silver_quarantine_and_cdf_drill(spark, catalog_name):
     # starting from version 0 to track incremental mutations.
     # The developer used a legacy / distractor option name instead of 'readChangeFeed'.
     cdf_df = (
-        spark.read
-        .format("delta")
+        spark.read.format("delta")
         .option("readChangeData", "true")  # BUG: 'readChangeData' instead of 'readChangeFeed'
         .option("startingVersion", 0)
         .table(clean_table)

@@ -27,6 +27,7 @@ QUARANTINE_TABLE = f"{CATALOG}.{SILVER_SCHEMA}.quarantine_events"
 def _is_lakeflow_context() -> bool:
     try:
         import dlt  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -49,11 +50,7 @@ def define_silver_lakeflow_tables():
         temporary=True,
     )
     def silver_staging():
-        return (
-            dlt.read_stream(BRONZE_TABLE)
-            .transform(extract_silver_fields)
-            .transform(validate_event_records)
-        )
+        return dlt.read_stream(BRONZE_TABLE).transform(extract_silver_fields).transform(validate_event_records)
 
     @dlt.table(
         name="clean_events",
@@ -105,11 +102,7 @@ def run_silver_pipeline_standalone(spark) -> dict[str, int]:
     bronze_stream = spark.readStream.table(BRONZE_TABLE)
 
     # 4. Apply validation transformations
-    validated_stream = (
-        bronze_stream
-        .transform(extract_silver_fields)
-        .transform(validate_event_records)
-    )
+    validated_stream = bronze_stream.transform(extract_silver_fields).transform(validate_event_records)
 
     clean_stream = validated_stream.transform(filter_clean_records)
     quarantine_stream = validated_stream.transform(filter_quarantine_records)
@@ -118,8 +111,7 @@ def run_silver_pipeline_standalone(spark) -> dict[str, int]:
     # Note: On Spark Connect Serverless, arbitrary Python foreachBatch UDF workers require container sandboxes.
     # Native Delta streaming append via .toTable() executes directly inside the optimized Serverless engine.
     clean_query = (
-        clean_stream.writeStream
-        .format("delta")
+        clean_stream.writeStream.format("delta")
         .outputMode("append")
         .option("checkpointLocation", f"/Volumes/{CATALOG}/{SILVER_SCHEMA}/_checkpoints/clean_events")
         .trigger(availableNow=True)
@@ -127,8 +119,7 @@ def run_silver_pipeline_standalone(spark) -> dict[str, int]:
     )
 
     quarantine_query = (
-        quarantine_stream.writeStream
-        .format("delta")
+        quarantine_stream.writeStream.format("delta")
         .outputMode("append")
         .option("checkpointLocation", f"/Volumes/{CATALOG}/{SILVER_SCHEMA}/_checkpoints/quarantine_events")
         .trigger(availableNow=True)
@@ -147,7 +138,9 @@ def run_silver_pipeline_standalone(spark) -> dict[str, int]:
     quarantine_count = spark.table(QUARANTINE_TABLE).count()
 
     print(f"[SUCCESS] Clean Silver table: {clean_count} rows written to {CLEAN_TABLE} (Idempotent foreachBatch)")
-    print(f"[SUCCESS] Quarantine Silver table: {quarantine_count} rows written to {QUARANTINE_TABLE} (Idempotent foreachBatch)")
+    print(
+        f"[SUCCESS] Quarantine: {quarantine_count} rows written to {QUARANTINE_TABLE}"
+    )
 
     return {"clean": clean_count, "quarantine": quarantine_count}
 
@@ -168,6 +161,7 @@ if __name__ == "__main__":
         sys.path.insert(0, project_root)
 
     from dotenv import load_dotenv
+
     load_dotenv()
 
     from databricks.connect import DatabricksSession

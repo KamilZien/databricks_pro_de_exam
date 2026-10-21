@@ -47,12 +47,7 @@ def spark():
     """
     from databricks.connect import DatabricksSession
 
-    session = (
-        DatabricksSession.builder
-        .serverless(True)
-        .profile("EXAM_PREP")
-        .getOrCreate()
-    )
+    session = DatabricksSession.builder.serverless(True).profile("EXAM_PREP").getOrCreate()
     yield session
     session.stop()
 

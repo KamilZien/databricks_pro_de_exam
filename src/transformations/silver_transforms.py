@@ -60,13 +60,14 @@ def validate_event_records(df: DataFrame) -> DataFrame:
     is_valid_record = id_valid & type_valid & amount_valid
 
     # Capture reason for quarantine
-    quarantine_reason = F.when(~id_valid, "NULL_EVENT_ID") \
-                         .when(~type_valid, "NULL_EVENT_TYPE") \
-                         .when(~amount_valid, "INVALID_OR_MISSING_PAYMENT_AMOUNT") \
-                         .otherwise(None)
+    quarantine_reason = (
+        F.when(~id_valid, "NULL_EVENT_ID")
+        .when(~type_valid, "NULL_EVENT_TYPE")
+        .when(~amount_valid, "INVALID_OR_MISSING_PAYMENT_AMOUNT")
+        .otherwise(None)
+    )
 
-    return df.withColumn("_is_valid", is_valid_record) \
-             .withColumn("_quarantine_reason", quarantine_reason)
+    return df.withColumn("_is_valid", is_valid_record).withColumn("_quarantine_reason", quarantine_reason)
 
 
 def filter_clean_records(df: DataFrame) -> DataFrame:

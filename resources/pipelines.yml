@@ -16,3 +16,5 @@ resources:
       configuration:
         spark.databricks.delta.enableDeletionVectors: "true"
         spark.databricks.delta.enableChangeDataFeed: "true"
+        # Official Lakeflow Pipeline dependency configuration key
+        pipelines.pip.requirements: "pydantic>=2.0.0"

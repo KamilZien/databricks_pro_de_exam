@@ -1,0 +1,11 @@
+# resources/jobs.yml — Lakeflow Job Workflow Definitions
+# Included modularly by databricks.yml
+
+resources:
+  jobs:
+    finops_udf_enrichment_job:
+      name: "finops-udf-enrichment-job"
+      tasks:
+        - task_key: run_udf_enrichment
+          notebook_task:
+            notebook_path: ../src/notebooks/03_udf_enrichment_notebook.py

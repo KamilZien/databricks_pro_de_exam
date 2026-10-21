@@ -107,8 +107,7 @@ Auto Loader incrementally ingests new files landing in cloud storage or UC Volum
 
 ```python
 bronze_df = (
-    spark.readStream
-    .format("cloudFiles")
+    spark.readStream.format("cloudFiles")
     .option("cloudFiles.format", "json")
     .option("cloudFiles.schemaLocation", "/Volumes/catalog/schema/checkpoints/bronze_schema")
     .option("cloudFiles.inferColumnTypes", "true")
@@ -231,8 +230,7 @@ Lakeflow Jobs support dynamic control-flow operators:
    ```python
    def write_micro_batch(batch_df, batch_id):
        (
-           batch_df.write
-           .format("delta")
+           batch_df.write.format("delta")
            .mode("append")
            .option("txnAppId", "unique_app_id")
            .option("txnVersion", batch_id)

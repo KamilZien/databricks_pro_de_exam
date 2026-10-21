@@ -38,9 +38,9 @@ def test_bronze_ingestion_and_optimization_drill(spark, catalog_name):
 
     # Step 4: Extract amount from VARIANT for financial validation
     # In PySpark, colon navigation on VARIANT is evaluated via SQL expression (F.expr)
-    amounts_df = df_cached.select(
-        F.expr("raw_variant:amount::double").alias("parsed_amount")
-    ).filter(F.col("parsed_amount").isNotNull())
+    amounts_df = df_cached.select(F.expr("raw_variant:amount::double").alias("parsed_amount")).filter(
+        F.col("parsed_amount").isNotNull()
+    )
 
     assert amounts_df.count() > 0, "Failed to parse amount from VARIANT"
 

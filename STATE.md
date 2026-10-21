@@ -21,7 +21,7 @@
 
 | Section | Weight | Diagnostic Score | Weak Objectives Logged | Status |
 |---|---|---|---|---|
-| **Section 1: Developing Code** | 23% | Subpoint 1.1 Completed | 1.1 Verified (Modular DABs) | 🟡 `1.2 NEXT` (Dependency Troubleshooting) |
+| **Section 1: Developing Code** | 23% | Subpoints 1.1–1.3 Completed (6/6) | 1.1, 1.2, 1.3 Mastered | 🟡 `1.4 NEXT (Lakeflow Pipelines & Auto Loader)` |
 | **Section 2: Data Ingestion & Acquisition** | 12% | Queued | To be covered after Section 1 | ⬜ Pending |
 | **Section 3: Data Manipulation** | 12% | Queued | To be covered after Section 2 | ⬜ Pending |
 | **Section 4: Monitoring and Alerting** | 10% | Not Diagnosed | None yet | ⬜ Pending |
