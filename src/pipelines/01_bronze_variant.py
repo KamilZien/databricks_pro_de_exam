@@ -67,8 +67,7 @@ def define_lakeflow_tables():
     )
     def raw_events_bronze():
         return (
-            dlt.read_stream("cloudFiles")
-            .format("cloudFiles")
+            spark.readStream.format("cloudFiles")
             .option("cloudFiles.format", "json")
             .option("cloudFiles.inferColumnTypes", "false")  # Read everything as string
             .option("cloudFiles.schemaEvolutionMode", "addNewColumns")
@@ -188,12 +187,11 @@ def add_ingestion_metadata(df):
 if _is_lakeflow_context():
     # Running inside Lakeflow Declarative Pipeline
     define_lakeflow_tables()
-else:
+
     # Module-level: don't auto-execute; call ingest_bronze_standalone(spark) explicitly
-    pass
 
 
-if __name__ == "__main__":
+elif __name__ == "__main__":
     from dotenv import load_dotenv
 
     load_dotenv()
