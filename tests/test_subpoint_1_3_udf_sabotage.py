@@ -18,6 +18,7 @@ Your mission:
 """
 
 import pytest
+from pyspark.sql import functions as F
 
 
 @pytest.mark.integration
@@ -34,10 +35,10 @@ def test_unity_catalog_sql_udf_tax(spark, catalog_name):
 
     row = test_df.collect()[0]
 
-    # --- SABOTAGE BUG 1: Calculation / Precision Sabotage ---
-    # The developer mistakenly asserted that a 23% tax on 100.0 should be 230.0 (off by 10x!)
-    # Fix this to match the true expected tax value (23.0).
-    expected_tax = 230.0  # <--- SABOTAGE BUG 1: Fix this value!
+    # --- RESOLVED SABOTAGE BUG 1: Calculation / Precision Sabotage ---
+    # The developer previously had expected_tax = 230.0 (off by 10x).
+    # Correct calculation: 100.0 * 0.23 = 23.00.
+    expected_tax = 23.0
 
     assert row["actual_tax"] == expected_tax, f"Tax mismatch: expected {expected_tax}, got {row['actual_tax']}"
 
@@ -48,21 +49,14 @@ def test_unity_catalog_churn_udf_governed_call(spark, catalog_name):
     schema = "silver"
     events_df = spark.table(f"{catalog_name}.{schema}.clean_events").limit(5)
 
-    # --- SABOTAGE BUG 2: Serverless Anti-Pattern Trap ---
-    # A junior engineer tried to use .rdd to extract and process rows with a Python lambda,
-    # which violates 2026 Serverless Law 3 and throws an exception on Spark Connect:
-    # "RDD operations are not supported on Spark Connect"
-    #
-    # FIX: Replace the .rdd.map() call with a native DataFrame transformation calling
-    # the Unity Catalog function via F.expr(f"{catalog_name}.{schema}.score_customer_churn(30, 2)").
+    # --- RESOLVED SABOTAGE BUG 2: Serverless Law 3 Anti-Pattern ---
+    # Previously, code called events_df.rdd.map(...), which raises PySparkNotImplementedError
+    # on Spark Connect because RDD APIs do not exist on Serverless compute.
+    # Resolution: Call the Unity Catalog Python UDF via native F.expr(), keeping execution
+    # purely inside the managed DataFrame engine.
+    enriched_df = events_df.withColumn(
+        "churn_risk",
+        F.expr(f"{catalog_name}.{schema}.score_customer_churn(30, 2)"),
+    )
 
-    # BROKEN CODE (SABOTAGE BUG 2):
-    rdd_result = events_df.rdd.map(lambda row: row["amount"] * 0.1).collect()
-    assert len(rdd_result) == 5
-
-    # Target fix should look like:
-    # enriched_df = events_df.withColumn(
-    #     "churn_risk",
-    #     F.expr(f"{catalog_name}.{schema}.score_customer_churn(30, 2)")
-    # )
-    # assert enriched_df.filter(F.col("churn_risk") > 0).count() == 5
+    assert enriched_df.filter(F.col("churn_risk") > 0).count() == 5
