@@ -135,13 +135,45 @@ bronze_df = (
 
 ## Subpoint 1.6: Streaming Tables vs. Materialized Views
 
-| Feature | Streaming Table (ST) | Materialized View (MV) |
+### Architectural Mechanics & Fundamental Distinctions
+- **Streaming Tables (ST):**
+  - Powered by Apache Spark Structured Streaming under the hood.
+  - Ingests and processes records incrementally from an unbounded streaming source (`FROM STREAM(catalog.schema.table)` or Auto Loader `read_files()`).
+  - Processes each record **exactly once**, maintaining internal streaming checkpoints managed by Lakeflow.
+  - **Memory & State Store Constraint:** Cannot execute non-watermarked full-table aggregations (`GROUP BY customer_id` without an event-time watermark) or arbitrary window functions (`ROW_NUMBER() OVER (...)`) because an infinite stream with no time cutoff causes the memory state store to grow unbounded until the cluster encounters Out Of Memory (`OOM`).
+  - Best used for Bronze ingestion and Silver row-level cleansing/filtering.
+
+- **Materialized Views (MV):**
+  - Powered by Databricks SQL / Catalyst cost-based optimizer.
+  - A Materialized View is a **physical Delta table on disk** containing pre-computed query results (not a virtual view).
+  - Can query any batch table, view, or streaming table snapshot.
+  - **Transformations Supported:** Full arbitrary SQL including `GROUP BY`, `COUNT(DISTINCT)`, complex multi-way joins, and window functions (`RANK()`, `LEAD()`, `LAG()`).
+  - **Liquid Clustering:** Configured with `CLUSTER BY (column_name)` so that analytical queries and BI dashboards benefit from file-level Data Skipping.
+  - Refreshed incrementally when possible, or via automatic full recomputation on schedule.
+  - Best used for Gold business metrics, analytical summaries, and BI dashboards.
+
+### Core Terminology Guide:
+1. **Declarative vs. Imperative:**
+   - *Imperative ("How"):* Step-by-step code execution (e.g. standard PySpark scripts with manual `checkpointLocation` and loops).
+   - *Declarative ("What"):* Declaring the desired final state (e.g. Lakeflow Pipelines / `CREATE MATERIALIZED VIEW`), allowing the engine to optimize execution, manage checkpoints, and coordinate failure recovery automatically.
+2. **`@dlt` Decorator:**
+   - Delta Live Tables (DLT) was rebranded to **Lakeflow Pipelines** in the post-Oct 2026 syllabus.
+   - For backwards compatibility, the Python library retains `@dlt.table` and `@dlt.view` syntax.
+3. **`STREAM()` Keyword:**
+   - In Lakeflow SQL, `FROM STREAM(table)` tells the engine to read the Delta transaction log incrementally rather than scanning the table as a static batch snapshot.
+4. **AUTO CDC:**
+   - Replaces legacy `APPLY CHANGES INTO`. Declarative API to ingest database change feeds (`INSERT`, `UPDATE`, `DELETE`) and automatically merge them as SCD Type 1 or SCD Type 2.
+
+### Exam Decision Matrix
+
+| Requirement / Scenario | Choose Streaming Table | Choose Materialized View |
 |---|---|---|
-| **Core Ingestion Model** | Append-only, stateful streaming. | Query-driven materialized snapshot. |
-| **Processing Semantics** | Ingests each row once from an unbounded stream. | Computes results based on source table state. |
-| **Aggregations & Joins** | Limited (requires watermarking / append-only). | Fully supports arbitrary complex joins, window functions, and group-by. |
-| **Refresh Mechanism** | Micro-batch incremental append. | Incremental refresh when possible, automatic backfill when needed. |
-| **Ideal Medallion Layer** | Bronze & Silver Ingestion. | Gold analytical summary & business aggregations. |
+| Ingesting cloud files via Auto Loader (`cloudFiles`) | ✅ **Yes** | ❌ No (use ST for ingestion) |
+| Low-latency, append-only micro-batch processing | ✅ **Yes** | ❌ No (higher refresh latency) |
+| Arbitrary `GROUP BY` without watermarks / `COUNT(DISTINCT)` | ❌ No (Throws state store error) | ✅ **Yes** |
+| Window functions (`ROW_NUMBER()`, `LEAD()`, `LAG()`) | ❌ No (Requires bounded watermarks) | ✅ **Yes** |
+| Business report queried once per day by stakeholders | ❌ No (Wasteful continuous compute) | ✅ **Yes** (Scheduled daily refresh) |
+| Source table undergoes in-place `UPDATE` and `DELETE` | ❌ No (Requires append-only or AUTO CDC) | ✅ **Yes** (Computes over table state) |
 
 ---
 
