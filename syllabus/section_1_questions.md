@@ -153,3 +153,104 @@ Which solution satisfies all requirements with the lowest maintenance overhead?
 
 > **🎯 10-Second Elimination Rule:**  
 > Analysts in Databricks SQL Warehouses cannot run Python scripts or install wheels. The only way to provide them custom Python logic is via Unity Catalog Functions (`LANGUAGE PYTHON`).
+
+---
+
+### Subpoint 1.4: Lakeflow Pipelines & Auto Loader
+
+#### Question 1.4.1: Auto Loader Schema Evolution & Rescued Data
+A data engineer is ingesting semi-structured JSON transaction files from a cloud storage volume into a Bronze Delta table using Auto Loader (`cloudFiles`). The downstream analytics application requires that the Bronze table schema remains strictly fixed and does not automatically add new columns when upstream developers introduce new JSON attributes. However, regulatory requirements dictate that no data is permanently lost or dropped if unexpected columns or type mismatches appear.
+
+Which Auto Loader configuration should the engineer implement?
+
+- A) Set `.option("cloudFiles.schemaEvolutionMode", "addNewColumns")` and use `DROP UNKNOWN COLUMNS` in the query.
+- B) Set `.option("cloudFiles.schemaEvolutionMode", "rescue")`, allowing unexpected fields and type-mismatched data to be parsed into the `_rescued_data` column while keeping the table schema static.
+- C) Set `.option("cloudFiles.schemaEvolutionMode", "failOnNewSchema")` and configure an automated email alert to notify engineers of new columns.
+- D) Set `.option("cloudFiles.schemaEvolutionMode", "none")` and disable schema inference.
+
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> Setting `cloudFiles.schemaEvolutionMode = "rescue"` prevents the schema from evolving (adding new columns) while ensuring zero data loss. Any unexpected columns or records with mismatched data types (such as non-numeric strings in numeric columns) are captured as JSON in the automatically appended `_rescued_data` column. `addNewColumns` (Option A) modifies the schema, `failOnNewSchema` (Option C) halts pipeline execution, and `none` (Option D) drops unknown fields.
+
+> **🎯 10-Second Elimination Rule:**  
+> "Schema remains strictly fixed" + "No data permanently lost or dropped" $\rightarrow$ `schemaEvolutionMode = "rescue"` and `_rescued_data`.
+
+---
+
+#### Question 1.4.2: Lakeflow Pipelines State & Checkpoint Architecture
+A senior data architect is reviewing a junior engineer's pull request that introduces a new Bronze-to-Silver streaming table within a Lakeflow Declarative Pipeline (`@dlt.table`). The junior engineer has included the following line in the streaming table definition:
+
+```python
+.option("checkpointLocation", "/Volumes/prod_catalog/checkpoints/bronze_to_silver")
+```
+
+What feedback should the senior architect provide according to Databricks best practices and engine architecture?
+
+- A) The syntax is valid, but the checkpoint path must use a legacy DBFS mount (`dbfs:/mnt/checkpoints/`) rather than a Unity Catalog Volume.
+- B) The `checkpointLocation` option should be removed because Lakeflow Pipelines automatically manage checkpointing, state recovery, and metadata internally without manual path specifications.
+- C) The checkpoint location must point to an Amazon S3 or Azure Blob container directly using cloud credentials rather than a Unity Catalog namespace.
+- D) In Lakeflow Pipelines, `checkpointLocation` is only valid when the pipeline runs in continuous mode (`continuous: true`), not in triggered mode.
+
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> In Lakeflow Pipelines (formerly Delta Live Tables), the runtime execution engine fully manages the storage location for checkpointing, transaction logs, and internal streaming state. Manually configuring `checkpointLocation` or `cloudFiles.schemaLocation` inside a Lakeflow pipeline is an exam anti-pattern and triggers an analysis/validation error.
+
+> **🎯 10-Second Elimination Rule:**  
+> Eliminate any option containing DBFS mounts (Option A). Eliminate cloud storage direct credential paths (Option C). Remember Law 4: Lakeflow Pipelines manage checkpoints automatically $\rightarrow$ remove `checkpointLocation`.
+
+---
+
+### Subpoint 1.5: Lakeflow Jobs Automation & DAG Orchestration
+
+#### Question 1.5.1: Conditional Task Execution (`run_if`)
+A data platform engineer is designing an enterprise Lakeflow Job DAG in Databricks consisting of 4 distinct tasks:
+1. `validate_inputs`: Checks raw file schemas and data volumes.
+2. `process_silver`: Transforms Bronze data into cleansed Silver tables (depends on `validate_inputs`).
+3. `trigger_pagerduty_alert`: Sends high-priority notifications to the on-call engineer (depends on `process_silver`).
+4. `archive_cluster_logs`: Cleans up temporary audit files and logs (depends on `process_silver` and `trigger_pagerduty_alert`).
+
+The engineer requires `archive_cluster_logs` to execute **regardless of whether upstream tasks succeeded, failed, or were skipped**, to ensure compliance logs are never lost. Furthermore, `trigger_pagerduty_alert` must trigger **only if** `process_silver` fails.
+
+Which task condition (`run_if`) policy must the engineer configure for `trigger_pagerduty_alert` and `archive_cluster_logs` respectively?
+
+- A) `trigger_pagerduty_alert`: `AT_LEAST_ONE_FAILED` | `archive_cluster_logs`: `ALL_DONE`
+- B) `trigger_pagerduty_alert`: `ALL_FAILED` | `archive_cluster_logs`: `ALL_SUCCESS`
+- C) `trigger_pagerduty_alert`: `NONE_FAILED` | `archive_cluster_logs`: `AT_LEAST_ONE_SUCCESS`
+- D) `trigger_pagerduty_alert`: `ON_FAILURE` | `archive_cluster_logs`: `ALWAYS`
+
+**Correct Answer:** **A**
+
+> **Explanation:**  
+> In Databricks Lakeflow Jobs (Workflows), task conditional execution is controlled via the `run_if` attribute:
+> - `ALL_SUCCESS` (default): Runs only when all upstream dependencies succeeded.
+> - `AT_LEAST_ONE_FAILED`: Runs if at least one dependency failed (ideal for alert/fallback tasks).
+> - `ALL_FAILED`: Runs only if all dependencies failed.
+> - `ALL_DONE`: Runs once all dependencies finish, regardless of their outcome (`SUCCESS`, `FAILED`, `UPSTREAM_FAILED`, or `SKIPPED`).
+> Options with `ON_FAILURE` or `ALWAYS` (Option D) are distractor syntax from airflow/generic CI/CD, not valid Databricks Lakeflow Job syntax.
+
+> **🎯 10-Second Elimination Rule:**  
+> Identify Databricks `run_if` enums: `ALL_DONE` is the only policy that runs regardless of outcome. `AT_LEAST_ONE_FAILED` is the standard trigger for alerting tasks. Eliminate fake values like `ALWAYS` or `ON_FAILURE`.
+
+---
+
+#### Question 1.5.2: Inter-Task Dynamic State Passing (`taskValues`)
+In a multi-task Lakeflow Job, an initial task (`model_evaluation`) computes dynamic performance metrics (e.g., `f1_score = 0.94` and `dataset_drift = False`). A downstream deployment task (`deploy_endpoint`) needs to read these runtime metrics to determine whether to promote the model or halt deployment.
+
+Which Databricks mechanism enables sharing runtime values between independent tasks within the same job run?
+
+- A) Write the values to an OS environment variable using `os.environ["F1_SCORE"] = "0.94"`.
+- B) Use `dbutils.jobs.taskValues.set(key=..., value=...)` in the producer task and `dbutils.jobs.taskValues.get(taskKey=..., key=...)` in the consumer task.
+- C) Pass the values via a shared Spark broadcast variable (`sc.broadcast(metrics)`).
+- D) Save the values in a temporary in-memory Pandas dataframe `metrics_df` accessible across notebook workers.
+
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> Databricks provides `taskValues` (`dbutils.jobs.taskValues`) specifically for passing small dynamic runtime states (up to 48KB total per task) between tasks in a single Lakeflow Job run. OS environment variables (Option A), Spark broadcast variables (Option C), and in-memory DataFrames (Option D) are scoped strictly to individual cluster/driver instances and cannot cross task boundaries in a distributed multi-task job.
+
+> **🎯 10-Second Elimination Rule:**  
+> Inter-task communication in Lakeflow Jobs = `dbutils.jobs.taskValues.set()` and `dbutils.jobs.taskValues.get()`. Eliminate `sc.broadcast` (Law 3: no `sc` on Serverless) and local OS/memory approaches.
+
+

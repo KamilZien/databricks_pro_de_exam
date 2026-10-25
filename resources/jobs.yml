@@ -1,11 +1,37 @@
-# resources/jobs.yml — Lakeflow Job Workflow Definitions
+# resources/jobs.yml — Advanced Multi-Task Lakeflow Job DAG
 # Included modularly by databricks.yml
 
 resources:
   jobs:
-    finops_udf_enrichment_job:
-      name: "finops-udf-enrichment-job"
+    finops_e2e_workflow:
+      name: "finops-e2e-workflow"
       tasks:
-        - task_key: run_udf_enrichment
+        # Task 1: Ingest & Score Producer (Emits taskValues)
+        - task_key: ingest_and_score
           notebook_task:
-            notebook_path: ../src/notebooks/03_udf_enrichment_notebook.py
+            notebook_path: ../src/notebooks/task_producer.py
+
+        # Task 2: Success Report (Consumes taskValues, runs if Task 1 succeeds)
+        - task_key: process_success_report
+          depends_on:
+            - task_key: ingest_and_score
+          run_if: ALL_SUCCESS
+          notebook_task:
+            notebook_path: ../src/notebooks/task_consumer_report.py
+
+        # Task 3: Emergency Alert Task (runs ONLY if Task 1 fails)
+        - task_key: failure_alert
+          depends_on:
+            - task_key: ingest_and_score
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: ../src/notebooks/task_cleanup.py
+
+        # Task 4: Teardown / Audit Task (Always runs regardless of success or failure)
+        - task_key: audit_cleanup
+          depends_on:
+            - task_key: process_success_report
+            - task_key: failure_alert
+          run_if: ALL_DONE
+          notebook_task:
+            notebook_path: ../src/notebooks/task_cleanup.py
