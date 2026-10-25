@@ -153,6 +153,3 @@ Which solution satisfies all requirements with the lowest maintenance overhead?
 
 > **🎯 10-Second Elimination Rule:**  
 > Analysts in Databricks SQL Warehouses cannot run Python scripts or install wheels. The only way to provide them custom Python logic is via Unity Catalog Functions (`LANGUAGE PYTHON`).
-
-
-

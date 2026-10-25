@@ -138,9 +138,7 @@ def run_silver_pipeline_standalone(spark) -> dict[str, int]:
     quarantine_count = spark.table(QUARANTINE_TABLE).count()
 
     print(f"[SUCCESS] Clean Silver table: {clean_count} rows written to {CLEAN_TABLE} (Idempotent foreachBatch)")
-    print(
-        f"[SUCCESS] Quarantine: {quarantine_count} rows written to {QUARANTINE_TABLE}"
-    )
+    print(f"[SUCCESS] Quarantine: {quarantine_count} rows written to {QUARANTINE_TABLE}")
 
     return {"clean": clean_count, "quarantine": quarantine_count}
 

@@ -47,13 +47,13 @@ targets:
     default: true
     workspace:
       host: https://dbc-400a320e-3bc6.cloud.databricks.com
-      root_path: /Workspace/Users/chinskagiera123@gmail.com/databricks_pro_de_exam_repo/.bundle/${bundle.name}/${bundle.target}
+      root_path: /Workspace/Users/chinskagiera123@gmail.com/.bundle/${bundle.name}/${bundle.target}
 
   prod:
     mode: production
     workspace:
       host: https://dbc-400a320e-3bc6.cloud.databricks.com
-      root_path: /Workspace/Users/chinskagiera123@gmail.com/databricks_pro_de_exam_repo/.bundle/${bundle.name}/${bundle.target}
+      root_path: /Workspace/Users/chinskagiera123@gmail.com/.bundle/${bundle.name}/${bundle.target}
     # In production, require explicit permissions
     permissions:
       - user_name: chinskagiera123@gmail.com
