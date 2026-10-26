@@ -250,7 +250,68 @@ Which Databricks mechanism enables sharing runtime values between independent ta
 > **Explanation:**  
 > Databricks provides `taskValues` (`dbutils.jobs.taskValues`) specifically for passing small dynamic runtime states (up to 48KB total per task) between tasks in a single Lakeflow Job run. OS environment variables (Option A), Spark broadcast variables (Option C), and in-memory DataFrames (Option D) are scoped strictly to individual cluster/driver instances and cannot cross task boundaries in a distributed multi-task job.
 
+---
+
+### Subpoint 1.6: Streaming Tables vs. Materialized Views
+
+#### Question 1.6.1: Latency, Cost, and Aggregation Architecture
+A data engineer is designing a Lakeflow Pipeline to support executive FinOps reporting. 
+The business requirements specify:
+1. Upstream raw billing events arrive continuously into cloud storage (approx. 5,000 JSON files per day).
+2. The executive dashboard displays total revenue per customer, average transaction size, and customer tier ranking across all historical data.
+3. Executives review this dashboard **once every morning at 8:00 AM UTC**.
+4. The cloud architecture team mandates minimizing compute costs while meeting the 8:00 AM freshness SLA.
+
+Which architecture should the engineer deploy?
+
+- A) Create a continuous `STREAMING TABLE` with an Auto Loader stream that continuously computes `GROUP BY customer_id` with `SUM(revenue)` and `ROW_NUMBER()`.
+- B) Ingest raw data into a Bronze/Silver `STREAMING TABLE` using Auto Loader, and build a Gold `MATERIALIZED VIEW` that computes the aggregations and window rankings, scheduled to refresh once daily prior to 8:00 AM.
+- C) Create a standard Delta table and configure a cron Lakeflow Job running every 5 minutes to execute `VACUUM` and `OPTIMIZE` before running a Python script that calculates rankings using `df.rdd.groupByKey()`.
+- D) Ingest raw files directly into a Gold `MATERIALIZED VIEW` using `spark.readStream.format("cloudFiles")` running with continuous execution mode.
+
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> A Materialized View is designed for query-driven, pre-computed analytical aggregations and window functions that refresh on a scheduled trigger (such as daily before 8:00 AM). Ingesting raw files into a Streaming Table via Auto Loader ensures efficient incremental ingestion, while refreshing the Materialized View once per day eliminates the massive unnecessary compute costs of running continuous streaming aggregations 24/7 for a dashboard checked only once daily.
+
 > **🎯 10-Second Elimination Rule:**  
-> Inter-task communication in Lakeflow Jobs = `dbutils.jobs.taskValues.set()` and `dbutils.jobs.taskValues.get()`. Eliminate `sc.broadcast` (Law 3: no `sc` on Serverless) and local OS/memory approaches.
+> Identify the reporting frequency: "Checked once a day" $\rightarrow$ eliminate continuous streaming options (Option A & D). Eliminate Option C because `.rdd` violates Serverless compute constraints (Law 3).
+
+---
+
+#### Question 1.6.2: Handling Upstream Modifications (Updates & Deletes)
+A data engineering team maintains an upstream Silver Delta table that captures corrected billing records. Due to billing disputes and refund processing, accounting analysts frequently execute `UPDATE` and `DELETE` operations on this Silver table.
+
+A junior engineer attempts to ingest this Silver table into a downstream analytical aggregation table using:
+```sql
+CREATE OR REFRESH STREAMING TABLE gold_refund_totals AS
+SELECT customer_id, sum(refund_amount) AS total_refunds
+FROM STREAM(portfolio_catalog.silver.corrected_billing)
+GROUP BY customer_id;
+```
+
+During testing, the pipeline fails with an error indicating that updates and deletes cannot be processed by the stream.
+
+How should the team resolve this failure while ensuring downstream reports accurately reflect all refunds, updates, and deletes?
+
+- A) Recreate the downstream table as a `MATERIALIZED VIEW` without the `STREAM()` keyword:
+  ```sql
+  CREATE OR REFRESH MATERIALIZED VIEW gold_refund_totals AS
+  SELECT customer_id, sum(refund_amount) AS total_refunds
+  FROM portfolio_catalog.silver.corrected_billing
+  GROUP BY customer_id;
+  ```
+- B) Add `IGNORE DELETES` to the streaming query: `FROM STREAM(portfolio_catalog.silver.corrected_billing) WITH (IGNORE DELETES)`.
+- C) Enable Deletion Vectors on the streaming table and run `OPTIMIZE` on the Silver table every 10 minutes.
+- D) Recreate the downstream table using a legacy Hive Metastore table with `PARTITION BY (customer_id)` and `ZORDER BY (refund_amount)`.
+
+**Correct Answer:** **A**
+
+> **Explanation:**  
+> Streaming Tables (`STREAM()`) require an append-only source log. If the source table undergoes in-place `UPDATE` or `DELETE` operations, standard streaming ingestion fails because the streaming engine cannot automatically propagate row retractions in append mode. Recreating the downstream table as a Materialized View queries the snapshot state of the table at refresh time, correctly capturing all current updates and deletions.
+
+> **🎯 10-Second Elimination Rule:**  
+> Look for "Upstream table undergoes UPDATE/DELETE" + "Downstream aggregation" $\rightarrow$ Materialized View without `STREAM()`. Eliminate `IGNORE DELETES` (Option B: causes data corruption) and legacy Hive/ZORDER distractors (Option D).
+
 
 

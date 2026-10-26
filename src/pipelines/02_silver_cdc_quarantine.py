@@ -148,8 +148,7 @@ def run_silver_pipeline_standalone(spark) -> dict[str, int]:
 # ---------------------------------------------------------------------------
 if _is_lakeflow_context():
     define_silver_lakeflow_tables()
-
-if __name__ == "__main__":
+elif __name__ == "__main__":
     import sys
     from pathlib import Path
 
