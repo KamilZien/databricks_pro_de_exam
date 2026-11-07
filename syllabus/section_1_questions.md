@@ -310,8 +310,80 @@ How should the team resolve this failure while ensuring downstream reports accur
 > **Explanation:**  
 > Streaming Tables (`STREAM()`) require an append-only source log. If the source table undergoes in-place `UPDATE` or `DELETE` operations, standard streaming ingestion fails because the streaming engine cannot automatically propagate row retractions in append mode. Recreating the downstream table as a Materialized View queries the snapshot state of the table at refresh time, correctly capturing all current updates and deletions.
 
+---
+
+### Subpoint 1.7: AUTO CDC APIs & SCD Types
+
+#### Question 1.7.1: Handling Out-of-Order Delivery in SCD Type 2 Pipelines
+A data engineer is designing a Lakeflow Pipeline to maintain a historical customer dimension (`dim_customers`) using CDC feeds from an enterprise MySQL database. Due to network partitioning across regional message brokers, change events often arrive minutes out of chronological order.
+
+The business requires an unbroken timeline of historical customer records, with each record tracking its valid time window (`__start_at` and `__end_at`).
+
+Which Lakeflow SQL statement correctly implements this requirement?
+
+- A)
+  ```sql
+  CREATE OR REFRESH STREAMING TABLE dim_customers
+  AS SELECT * FROM STREAM(portfolio_catalog.bronze.customers_cdc)
+  WHERE operation != 'DELETE'
+  CLUSTER BY (customer_id);
+  ```
+- B)
+  ```sql
+  CREATE FLOW customer_scd2_flow
+  AS AUTO CDC INTO portfolio_catalog.silver.dim_customers
+  FROM STREAM(portfolio_catalog.bronze.customers_cdc)
+  KEYS (customer_id)
+  APPLY AS DELETE WHEN operation = 'DELETE'
+  SEQUENCE BY change_timestamp
+  STORED AS SCD TYPE 2;
+  ```
+- C)
+  ```sql
+  APPLY CHANGES INTO portfolio_catalog.silver.dim_customers
+  FROM STREAM(portfolio_catalog.bronze.customers_cdc)
+  KEYS (customer_id)
+  SEQUENCE BY change_timestamp
+  COLUMNS * EXCEPT (operation);
+  ```
+- D)
+  ```sql
+  CREATE OR REFRESH MATERIALIZED VIEW dim_customers AS
+  SELECT customer_id, change_timestamp AS __start_at, 
+         LEAD(change_timestamp) OVER (PARTITION BY customer_id ORDER BY change_timestamp) AS __end_at
+  FROM portfolio_catalog.bronze.customers_cdc;
+  ```
+
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> In Databricks Lakeflow Pipelines (post-Oct 2026), the `CREATE FLOW ... AS AUTO CDC INTO` API replaces the legacy `APPLY CHANGES INTO` syntax. To track historical slowly changing dimensions without corrupting timelines when messages arrive out-of-order, specifying `SEQUENCE BY <timestamp_col>` and `STORED AS SCD TYPE 2` instructs the engine to automatically manage the `__start_at` and `__end_at` timeline windows.
+
 > **🎯 10-Second Elimination Rule:**  
-> Look for "Upstream table undergoes UPDATE/DELETE" + "Downstream aggregation" $\rightarrow$ Materialized View without `STREAM()`. Eliminate `IGNORE DELETES` (Option B: causes data corruption) and legacy Hive/ZORDER distractors (Option D).
+> Look for the modern `AUTO CDC` syntax. Eliminate Option C (uses deprecated `APPLY CHANGES INTO`). Eliminate Option A (regular streaming table cannot handle CDC updates/deletes).
+
+---
+
+#### Question 1.7.2: Identifying Active Records in Lakeflow SCD Type 2 Dimensions
+A data analyst is querying a dimension table `portfolio_catalog.silver.dim_customers` that was populated using a Lakeflow `AUTO CDC` pipeline configured with `STORED AS SCD TYPE 2`.
+
+The analyst needs to write a query that returns **only the currently active record** for each customer to join with a daily sales fact table.
+
+Which filter predicate must the analyst include in their `WHERE` clause?
+
+- A) `WHERE is_current = TRUE`
+- B) `WHERE __end_at = '9999-12-31 23:59:59'`
+- C) `WHERE __end_at IS NULL`
+- D) `WHERE operation != 'DELETE' AND row_status = 'ACTIVE'`
+
+**Correct Answer:** **C**
+
+> **Explanation:**  
+> In Databricks Lakeflow SCD Type 2 tables, the engine automatically adds two system columns: `__start_at` and `__end_at`. The currently active row always has `__end_at IS NULL`. Sentinel date values like `'9999-12-31'` (Option B) are legacy data warehousing patterns not used by Lakeflow.
+
+> **🎯 10-Second Elimination Rule:**  
+> In Databricks Lakeflow SCD Type 2, the active record is always identified by `__end_at IS NULL`.
+
 
 
 

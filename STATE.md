@@ -21,7 +21,7 @@
 
 | Section | Weight | Diagnostic Score | Weak Objectives Logged | Status |
 |---|---|---|---|---|
-| **Section 1: Developing Code** | 23% | Subpoints 1.1–1.6 Completed (12/12) | 1.1–1.6 Mastered | 🟡 `1.7 ACTIVE (AUTO CDC & SCD Types)` |
+| **Section 1: Developing Code** | 23% | Subpoints 1.1–1.7 Completed (14/14) | 1.1–1.7 Mastered | 🟡 `1.8 ACTIVE (Structured Streaming vs Declarative Pipelines)` |
 | **Section 2: Data Ingestion & Acquisition** | 12% | Queued | To be covered after Section 1 | ⬜ Pending |
 | **Section 3: Data Manipulation** | 12% | Queued | To be covered after Section 2 | ⬜ Pending |
 | **Section 4: Monitoring and Alerting** | 10% | Not Diagnosed | None yet | ⬜ Pending |
@@ -41,6 +41,8 @@
 | Lakeflow Pipeline | `[dev chinskagiera123] finops-lakehouse-bronze-silver` | ✅ Deployed (ID: 6057c8b8-c8b1-4889-9ce4-a4e16f8b3a1a) | Section 1.4, 8.3 |
 | Lakeflow Multi-Task Job | `finops-e2e-workflow` | ✅ Executed Run #336428047017692 (taskValues + run_if DAG) | Section 1.5, 8.2 |
 | `src/pipelines/04_gold_materialized_views.py` | Gold Materialized Views | ✅ Deployed & Materialized (24 rows, Liquid Clustering) | Section 1.6, 9.2 |
+| `src/pipelines/05_auto_cdc_pipeline.py` | AUTO CDC (SCD 1 & 2) | ✅ Validated (Out-of-order sequencing & tombstone deletes) | Section 1.7, 3.4 |
+| `tests/test_subpoint_1_7_cdc_sabotage.py` | Pytest Unit & Integration | ✅ Passed (2/2) | Section 1.7, 1.11 |
 | `tests/test_subpoint_1_6_gold_mv_sabotage.py` | Pytest Integration Test | ✅ Passed (2/2) | Section 1.6, 1.11 |
 | `src/generator/chaos_webhook_generator.py` | Volume Data Generator | ✅ Executed (750 rows in UC Volume) | Section 2.1, 3.2 |
 | `portfolio_catalog.bronze.raw_events` | Delta Table | ✅ Ingested (751 rows, VARIANT, Liquid Clustering) | Section 1.4, 3.2, 5.2 |
