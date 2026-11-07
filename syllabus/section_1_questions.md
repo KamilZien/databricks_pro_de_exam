@@ -381,8 +381,57 @@ Which filter predicate must the analyst include in their `WHERE` clause?
 > **Explanation:**  
 > In Databricks Lakeflow SCD Type 2 tables, the engine automatically adds two system columns: `__start_at` and `__end_at`. The currently active row always has `__end_at IS NULL`. Sentinel date values like `'9999-12-31'` (Option B) are legacy data warehousing patterns not used by Lakeflow.
 
+---
+
+### Subpoint 1.8: Structured Streaming vs. Lakeflow Declarative Pipelines
+
+#### Question 1.8.1: Architectural Framework Selection Under Operational Constraints
+A financial data platform team is building a streaming fraud detection workload. 
+The requirements are:
+1. Ingest real-time transactions from an existing Kafka topic.
+2. For every suspicious transaction detected, immediately trigger an authenticated HTTP POST request to an external banking risk REST API and publish an alert payload to a downstream Kafka notifications topic.
+3. The pipeline must support arbitrary Python connection pooling and custom authorization token refresh mechanisms inside each micro-batch.
+
+Which framework should the data engineering team choose to implement this workload?
+
+- A) Lakeflow Declarative Pipelines configured with `@dlt.table` and `pipelines.channel = "PREVIEW"`
+- B) Spark Structured Streaming using `writeStream.foreachBatch(...)`
+- C) A Lakeflow Materialized View scheduled with a 10-second refresh trigger
+- D) Lakeflow Connect configured with an outbound JDBC connector
+
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> When a streaming workload requires writing to arbitrary external systems (such as publishing to an external Kafka topic, writing to a Redis cache, or dispatching HTTP requests to a REST API), Spark Structured Streaming with `foreachBatch(...)` provides the necessary granular control to instantiate custom connection pools and execute arbitrary Python logic per micro-batch. Lakeflow Declarative Pipelines are designed for governed Delta/Iceberg tables in Unity Catalog and do not support arbitrary third-party outbound sink connections.
+
 > **🎯 10-Second Elimination Rule:**  
-> In Databricks Lakeflow SCD Type 2, the active record is always identified by `__end_at IS NULL`.
+> Look for "arbitrary REST API call" or "write to external Kafka topic" $\rightarrow$ must be Spark Structured Streaming with `foreachBatch`.
+
+---
+
+#### Question 1.8.2: Minimizing Operational Maintenance for Medallion Lakehouses
+A data architecture team wants to standardize its core customer data platform across 15 business units.
+The platform requirements are:
+1. Ingest raw semi-structured JSON events into Bronze tables.
+2. Cleanse and validate Silver tables using built-in data quality metrics (such as dropping records that fail schema validation and tracking violation counts in pipeline event logs).
+3. Compute daily Gold business summary tables with complex aggregations and joins within the same pipeline dependency graph.
+4. Minimize operational overhead by eliminating manual checkpoint management, custom cluster resizing logic, and manual query recovery scripts.
+
+Which solution satisfies all requirements with the lowest operational maintenance overhead?
+
+- A) Lakeflow Declarative Pipelines defining Streaming Tables for Bronze/Silver and Materialized Views for Gold
+- B) Apache Spark Structured Streaming with manual `checkpointLocation` options set on Unity Catalog Volumes and custom `assert` statements
+- C) A scheduled Databricks Notebook running standard batch `DataFrame.write.mode("append")` inside a Lakeflow Job with retry policies
+- D) Spark Structured Streaming writing to Delta tables with `Trigger.ProcessingTime("10 seconds")` running on a single-node cluster
+
+**Correct Answer:** **A**
+
+> **Explanation:**  
+> Lakeflow Declarative Pipelines (formerly DLT) provide a fully managed declarative framework designed specifically for medallion architectures. Key benefits include: built-in data quality expectations (`expect`, `expect_or_drop`), automatic checkpoint management without manual path configurations, unified execution of Streaming Tables and Materialized Views within a single dependency DAG, and automatic compute scaling/retry handling.
+
+> **🎯 10-Second Elimination Rule:**  
+> "Lowest operational maintenance" + "Built-in data quality metrics" + "Streaming Tables and Materialized Views in same DAG" $\rightarrow$ Lakeflow Declarative Pipelines. Eliminate options with manual checkpoints (Option B) or continuous processing triggers (Option D).
+
 
 
 
