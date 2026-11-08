@@ -12,13 +12,13 @@ Demonstrates the architectural decision boundary:
      - Routing alerts to external systems / custom sinks
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 
 # ===========================================================================
 # 1. Declarative Lakeflow Pipeline Abstraction
 # ===========================================================================
-def define_declarative_pipeline_spec() -> Dict[str, Any]:
+def define_declarative_pipeline_spec() -> dict[str, Any]:
     """
     Returns the declarative pipeline specification.
     Key properties:
@@ -48,9 +48,9 @@ class ImperativeAlertSink:
     """
 
     def __init__(self):
-        self.emitted_alerts: List[Dict[str, Any]] = []
+        self.emitted_alerts: list[dict[str, Any]] = []
 
-    def process_micro_batch(self, batch_id: int, records: List[Dict[str, Any]]) -> int:
+    def process_micro_batch(self, batch_id: int, records: list[dict[str, Any]]) -> int:
         """
         Micro-batch processor simulating a custom foreachBatch writer.
         Requires manual transaction tracking and custom error recovery.
@@ -70,7 +70,7 @@ class ImperativeAlertSink:
         return alerts_sent
 
 
-def build_imperative_stream_config(catalog: str, checkpoint_volume: str) -> Dict[str, Any]:
+def build_imperative_stream_config(catalog: str, checkpoint_volume: str) -> dict[str, Any]:
     """
     Constructs an imperative Structured Streaming configuration.
     Demonstrates that imperative streaming REQUIRES:

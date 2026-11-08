@@ -21,7 +21,7 @@
 
 | Section | Weight | Diagnostic Score | Weak Objectives Logged | Status |
 |---|---|---|---|---|
-| **Section 1: Developing Code** | 23% | Subpoints 1.1–1.8 Completed (16/16) | 1.1–1.8 Mastered | 🟡 `1.9 ACTIVE (Control-Flow: If/Else & For Each)` |
+| **Section 1: Developing Code** | 23% | Subpoints 1.1–1.9 Completed (18/18) | 1.1–1.9 Mastered | 🟡 `1.10 ACTIVE (Compute & Serverless Config)` |
 | **Section 2: Data Ingestion & Acquisition** | 12% | Queued | To be covered after Section 1 | ⬜ Pending |
 | **Section 3: Data Manipulation** | 12% | Queued | To be covered after Section 2 | ⬜ Pending |
 | **Section 4: Monitoring and Alerting** | 10% | Not Diagnosed | None yet | ⬜ Pending |
@@ -44,6 +44,8 @@
 | `src/pipelines/05_auto_cdc_pipeline.py` | AUTO CDC (SCD 1 & 2) | ✅ Validated (Out-of-order sequencing & tombstone deletes) | Section 1.7, 3.4 |
 | `src/pipelines/06_streaming_vs_declarative.py` | Pipeline Decision Boundary | ✅ Encapsulated (Managed vs Imperative foreachBatch) | Section 1.8, 1.12 |
 | `tests/test_subpoint_1_8_streaming_choice_sabotage.py` | Pytest Unit & Integration | ✅ Passed (2/2) | Section 1.8, 1.11 |
+| `resources/jobs.yml` + `src/notebooks/task_regional_processor.py` | Control-Flow (`condition_task` & `for_each_task`) | ✅ Deployed & Validated | Section 1.9 |
+| `tests/test_subpoint_1_9_control_flow_sabotage.py` | Pytest Unit (`@pytest.mark.unit`) | ✅ Passed (2/2) | Section 1.9, 1.11 |
 | `tests/test_subpoint_1_7_cdc_sabotage.py` | Pytest Unit & Integration | ✅ Passed (2/2) | Section 1.7, 1.11 |
 | `tests/test_subpoint_1_6_gold_mv_sabotage.py` | Pytest Integration Test | ✅ Passed (2/2) | Section 1.6, 1.11 |
 | `src/generator/chaos_webhook_generator.py` | Volume Data Generator | ✅ Executed (750 rows in UC Volume) | Section 2.1, 3.2 |

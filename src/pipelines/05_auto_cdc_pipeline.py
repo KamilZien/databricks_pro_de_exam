@@ -47,14 +47,14 @@ def define_cdc_pipeline_tables():
         },
     )
     def customer_cdc_raw():
-        from src.generator.cdc_stream_generator import generate_customer_cdc_events
-        import json
-        from pyspark.sql import functions as F
+        from pyspark.sql import SparkSession
 
-        # Ingests CDC records as a DataFrame
+        from src.generator.cdc_stream_generator import generate_customer_cdc_events
+
+        # Ingests CDC records as a DataFrame without violating Serverless Law 3 (never use sparkContext/RDD)
+        active_spark = SparkSession.getActiveSession()
         records = generate_customer_cdc_events()
-        json_rdd = spark.sparkContext.parallelize([json.dumps(r) for r in records])
-        return spark.read.json(json_rdd)
+        return active_spark.createDataFrame(records)
 
     # 2. SCD Type 1 Target Flow (Overwrites in-place: Current State Only)
     dlt.create_auto_cdc_flow(
@@ -111,12 +111,12 @@ def simulate_scd2_merge(cdc_records):
         records_by_key[r["customer_id"]].append(r)
 
     timeline = []
-    for cid, events in records_by_key.items():
+    for _cid, events in records_by_key.items():
         # Order by sequence timestamp
         ordered = sorted(events, key=lambda x: x["event_timestamp"])
         for i, ev in enumerate(ordered):
             start_at = ev["event_timestamp"]
-            is_last = (i == len(ordered) - 1)
+            is_last = i == len(ordered) - 1
             end_at = None if is_last else ordered[i + 1]["event_timestamp"]
 
             if ev["operation"] != "DELETE":
@@ -139,6 +139,7 @@ elif __name__ == "__main__":
         sys.path.insert(0, project_root)
 
     from src.generator.cdc_stream_generator import generate_customer_cdc_events
+
     events = generate_customer_cdc_events()
     scd1 = simulate_scd1_merge(events)
     print(f"[*] SCD 1 Final Active Keys: {list(scd1.keys())}")

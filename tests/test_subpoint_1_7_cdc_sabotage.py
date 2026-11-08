@@ -19,7 +19,9 @@ Your mission:
 """
 
 import importlib
+
 import pytest
+
 from src.generator.cdc_stream_generator import generate_customer_cdc_events
 
 cdc_pipeline_module = importlib.import_module("src.pipelines.05_auto_cdc_pipeline")
@@ -27,6 +29,7 @@ simulate_scd1_merge = cdc_pipeline_module.simulate_scd1_merge
 simulate_scd2_merge = cdc_pipeline_module.simulate_scd2_merge
 
 
+@pytest.mark.unit
 def test_scd1_and_sequence_by_sabotage():
     """
     Verifies that SEQUENCE BY prevents late-arriving older events
@@ -47,11 +50,10 @@ def test_scd1_and_sequence_by_sabotage():
     # --- RESOLVED SABOTAGE BUG 1: The Out-of-Order Trap ---
     # In AUTO CDC, because we specify `SEQUENCE BY event_timestamp`, the 12:00 event (VIP)
     # WINS over the late 11:00 event (TRIAL), regardless of arrival order.
-    assert cust_103["tier"] == "VIP", (
-        f"Expected tier to be sequenced by timestamp (VIP), got {cust_103['tier']}"
-    )
+    assert cust_103["tier"] == "VIP", f"Expected tier to be sequenced by timestamp (VIP), got {cust_103['tier']}"
 
 
+@pytest.mark.unit
 def test_scd2_timeline_and_null_end_at_sabotage():
     """
     Verifies SCD Type 2 timeline generation and system column standards.

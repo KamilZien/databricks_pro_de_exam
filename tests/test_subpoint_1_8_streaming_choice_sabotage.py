@@ -9,13 +9,15 @@ This test suite verifies:
   - Bug 1 (The Lakeflow Checkpoint Anti-Pattern):
     An engineer attempts to configure a manual checkpointLocation inside a Lakeflow Declarative Pipeline specification.
   - Bug 2 (The Non-Delta Sink Capability Trap):
-    An engineer assumes Lakeflow Declarative Pipelines natively support arbitrary third-party REST API / Redis sinks without Spark Structured Streaming.
+    An engineer assumes Lakeflow Declarative Pipelines natively support arbitrary
+    third-party REST API / Redis sinks without Spark Structured Streaming.
 
 Your mission:
   Diagnose both bugs and fix them so the test passes 100% green!
 """
 
 import importlib
+
 import pytest
 
 streaming_module = importlib.import_module("src.pipelines.06_streaming_vs_declarative")
@@ -24,6 +26,7 @@ ImperativeAlertSink = streaming_module.ImperativeAlertSink
 build_imperative_stream_config = streaming_module.build_imperative_stream_config
 
 
+@pytest.mark.unit
 def test_declarative_checkpoint_rules_sabotage():
     """
     Verifies that Lakeflow Declarative Pipelines manage checkpoints automatically
@@ -39,6 +42,7 @@ def test_declarative_checkpoint_rules_sabotage():
     )
 
 
+@pytest.mark.unit
 def test_custom_sink_operational_boundary_sabotage():
     """
     Verifies that streaming to custom third-party sinks (Kafka, REST, Redis)

@@ -18,8 +18,8 @@ Your mission:
 """
 
 import pytest
-from pyspark.sql import functions as F
 from pyspark.errors.exceptions.connect import AnalysisException
+from pyspark.sql import functions as F
 
 
 @pytest.mark.integration
@@ -41,7 +41,7 @@ def test_streaming_aggregation_state_limitation(spark, catalog_name):
     # causes Spark Catalyst to throw AnalysisException:
     # "Append output mode not supported when there are streaming aggregations without watermark"
     with pytest.raises(AnalysisException) as exc_info:
-        query = (
+        (
             unwatermarked_agg.writeStream.format("delta")
             .outputMode("append")
             .trigger(availableNow=True)

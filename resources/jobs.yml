@@ -35,3 +35,29 @@ resources:
           run_if: ALL_DONE
           notebook_task:
             notebook_path: ../src/notebooks/task_cleanup.py
+
+        # Task 5: Condition Task (If/Else — Subpoint 1.9)
+        # Evaluates on Serverless Control Plane whether quarantined_records > 50
+        - task_key: check_quarantine_threshold
+          depends_on:
+            - task_key: ingest_and_score
+          condition_task:
+            op: GREATER_THAN
+            left: "{{tasks.ingest_and_score.values.quarantined_records}}"
+            right: "50"
+
+        # Task 6: For Each Loop Task (Subpoint 1.9)
+        # Runs regional settlement notebook in parallel across 3 regions ONLY if condition is "false" (or independent)
+        - task_key: process_each_region
+          depends_on:
+            - task_key: check_quarantine_threshold
+              outcome: "true"
+          for_each_task:
+            inputs: '["US", "DE", "UK"]'
+            concurrency: 3
+            task:
+              task_key: regional_settlement_iteration
+              notebook_task:
+                notebook_path: ../src/notebooks/task_regional_processor.py
+                base_parameters:
+                  region_code: "{{input}}"

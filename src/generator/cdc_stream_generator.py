@@ -10,12 +10,12 @@ Generates synthetic Change Data Capture (CDC) events representing real-world dat
 These events feed directly into Subpoint 1.7's AUTO CDC pipeline (SCD Type 1 & Type 2).
 """
 
-from datetime import datetime, timedelta
 import json
-from typing import Any, Dict, List
+from datetime import datetime, timedelta
+from typing import Any
 
 
-def generate_customer_cdc_events() -> List[Dict[str, Any]]:
+def generate_customer_cdc_events() -> list[dict[str, Any]]:
     """
     Generates a calibrated batch of CDC events designed to test:
       1. Basic INSERTs
@@ -51,7 +51,6 @@ def generate_customer_cdc_events() -> List[Dict[str, Any]]:
             "operation": "UPDATE",
             "event_timestamp": (base_time + timedelta(hours=5)).isoformat(),
         },
-
         # Customer 102: Delete Lifecycle (INSERT -> UPDATE -> DELETE)
         {
             "customer_id": "CUST-102",
@@ -77,7 +76,6 @@ def generate_customer_cdc_events() -> List[Dict[str, Any]]:
             "operation": "DELETE",
             "event_timestamp": (base_time + timedelta(hours=4)).isoformat(),
         },
-
         # Customer 103: OUT-OF-ORDER TRAP (Crucial for testing SEQUENCE BY)
         # Event A: Registered at 10:00 (TIER: TRIAL)
         # Event B: Upgraded at 12:00 (TIER: VIP) — arrives in stream FIRST

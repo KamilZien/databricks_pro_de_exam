@@ -40,14 +40,11 @@ def compute_daily_billing_summary(df):
     """
     from pyspark.sql import functions as F
 
-    return (
-        df.groupBy(F.col("event_date").alias("billing_date"), "user_id")
-        .agg(
-            F.count(F.lit(1)).alias("total_api_calls"),
-            F.round(F.sum("amount"), 2).alias("total_spend_usd"),
-            F.round(F.avg("amount"), 2).alias("avg_spend_per_call"),
-            F.max("amount").alias("max_spend_single_call"),
-        )
+    return df.groupBy(F.col("event_date").alias("billing_date"), "user_id").agg(
+        F.count(F.lit(1)).alias("total_api_calls"),
+        F.round(F.sum("amount"), 2).alias("total_spend_usd"),
+        F.round(F.avg("amount"), 2).alias("avg_spend_per_call"),
+        F.max("amount").alias("max_spend_single_call"),
     )
 
 
@@ -126,12 +123,7 @@ def run_gold_pipeline_standalone(spark):
     ranking_df = gold_billing_df.transform(compute_customer_ranking)
 
     print(f"[*] Writing Gold Risk Table: {GOLD_CHURN_TABLE}")
-    (
-        ranking_df.write.format("delta")
-        .mode("overwrite")
-        .option("overwriteSchema", "true")
-        .saveAsTable(GOLD_CHURN_TABLE)
-    )
+    (ranking_df.write.format("delta").mode("overwrite").option("overwriteSchema", "true").saveAsTable(GOLD_CHURN_TABLE))
 
     spark.sql(f"ALTER TABLE {GOLD_CHURN_TABLE} CLUSTER BY (billing_date)")
 

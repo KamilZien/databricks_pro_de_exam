@@ -429,8 +429,60 @@ Which solution satisfies all requirements with the lowest operational maintenanc
 > **Explanation:**  
 > Lakeflow Declarative Pipelines (formerly DLT) provide a fully managed declarative framework designed specifically for medallion architectures. Key benefits include: built-in data quality expectations (`expect`, `expect_or_drop`), automatic checkpoint management without manual path configurations, unified execution of Streaming Tables and Materialized Views within a single dependency DAG, and automatic compute scaling/retry handling.
 
+---
+
+### Subpoint 1.9: Lakeflow Jobs Control-Flow Operators (`If/Else` & `For Each`)
+
+#### Question 1.9.1: Dynamic Iteration and Granular Failure Recovery with `For Each` Tasks
+A data engineering team runs a daily settlement notebook across 35 country codes. Currently, a single driver notebook uses a Python `for` loop calling `dbutils.notebook.run("settle_country", 300, {"country": c})` sequentially.
+
+The team complains about two operational problems:
+1. Running 35 countries sequentially takes over 3 hours.
+2. Whenever a transient network error causes 1 country to fail, re-running the job re-executes all 35 countries from scratch.
+
+Which Lakeflow Jobs architecture resolves both issues while adhering to Databricks best practices?
+
+- A) Replace the notebook with a `condition_task` that checks if `country_count == 35` and runs `dbutils.notebook.run()` inside a Python `multiprocessing.Pool(35)`.
+- B) Configure a `for_each_task` inside the Lakeflow Job with `inputs` set to the JSON array of 35 country codes, set `concurrency` (e.g., `concurrency: 10`), pass `{"country": "{{input}}"}` in `base_parameters`, and use Lakeflow **Repair Run** to re-run only failed country iterations.
+- C) Create 35 separate Lakeflow Pipelines in `databricks.yml` and trigger all 35 pipelines simultaneously using a cron schedule.
+- D) Configure a `for_each_task` that nests a second `for_each_task` inside it, passing `{"country": "{{inputs}}"}` to the child notebook.
+
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> In Lakeflow Jobs, the `for_each_task` operator replaces sequential `dbutils.notebook.run()` loops. Setting `concurrency` enables parallel execution of iterations, passing `"{{input}}"` (singular) binds each array item to the child task's parameters, and Lakeflow's native **Repair Run** capability allows re-running only the specific failed country iterations without re-executing successful ones.
+
 > **🎯 10-Second Elimination Rule:**  
-> "Lowest operational maintenance" + "Built-in data quality metrics" + "Streaming Tables and Materialized Views in same DAG" $\rightarrow$ Lakeflow Declarative Pipelines. Eliminate options with manual checkpoints (Option B) or continuous processing triggers (Option D).
+> Eliminate `dbutils.notebook.run()` loops (Option A). Eliminate nested `for_each_task` and plural `"{{inputs}}"` (Option D — both are invalid syntax).
+
+---
+
+#### Question 1.9.2: Branching on Runtime Data Metrics vs. Task Execution Status
+In a multi-task Lakeflow Job, Task 1 (`validate_silver_batch`) calculates the percentage of anomalous records and publishes it using:
+```python
+dbutils.jobs.taskValues.set(key="anomaly_pct", value=14.5)
+```
+Task 1 always completes with status `SUCCESS`.
+
+The architecture requires that:
+- If `anomaly_pct` is **greater than `10.0`**, Task 2A (`quarantine_audit_workflow`) must run.
+- If `anomaly_pct` is **less than or equal to `10.0`**, Task 2B (`publish_gold_dashboard`) must run instead.
+
+How should the data engineer configure this branching logic in the Lakeflow Job?
+
+- A) Configure Task 2A with `run_if: AT_LEAST_ONE_FAILED` and Task 2B with `run_if: ALL_SUCCESS` directly depending on Task 1.
+- B) Add a `condition_task` (`If/Else`) that compares `{{tasks.validate_silver_batch.values.anomaly_pct}}` `GREATER_THAN` `10.0`, and configure Task 2A to depend on the condition task with `outcome: "true"` and Task 2B with `outcome: "false"`.
+- C) Use a `for_each_task` with `inputs: "{{tasks.validate_silver_batch.values.anomaly_pct}}"` and `concurrency: 1`.
+- D) Set `spark.conf.set("spark.databricks.job.branch", "true")` inside Task 1 so Task 2A automatically detects the Spark configuration on its own cluster.
+
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> While `run_if` branches on task execution status (`SUCCESS` vs `FAILED`), a `condition_task` (`If/Else`) evaluates dynamic runtime values such as `taskValues` or job parameters on the Serverless Control Plane. Downstream tasks connect to the condition task by specifying `outcome: "true"` or `outcome: "false"` inside their `depends_on` block.
+
+> **🎯 10-Second Elimination Rule:**  
+> Branching on a data metric (`anomaly_pct > 10.0`) when the upstream task succeeded $\rightarrow$ must use `condition_task` (`If/Else`) with `outcome: "true"` / `"false"`. Eliminate `run_if` (Option A) and `spark.conf` across tasks (Option D).
+
 
 
 
