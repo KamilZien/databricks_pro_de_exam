@@ -539,8 +539,50 @@ Which change fixes this on serverless compute?
 > **Explanation:**  
 > On Databricks Serverless compute, driver memory size is managed via the notebook's Environment settings (enabling the High-Memory REPL option). Setting `spark.driver.memory` dynamically via `spark.conf.set()` (Option B), calling `.cache()` (Option C — unsupported on Spark Connect), and attaching cluster init scripts (Option D — unsupported on Serverless) are all invalid.
 
+---
+
+### Subpoint 1.11: Unit & Integration Testing in PySpark
+
+#### Question 1.11.1: Comparing Distributed PySpark DataFrames with Floating-Point & Row-Order Variations
+A data engineer is writing a `pytest` suite to verify a PySpark transformation function `calculate_regional_tax(df)` that computes a `DOUBLE` column (`tax_amount`) using distributed joins and aggregations.
+
+Because the transformation performs a shuffle without an `ORDER BY`, the output rows may appear in any order across runs, and floating-point arithmetic introduces minor rounding differences at the 5th decimal place (`0.00001`).
+
+Which assertion statement is the Databricks-recommended way to verify the output DataFrame against an expected DataFrame?
+
+- A) `assert actual_df.collect() == expected_df.collect()`
+- B) `assert actual_df.rdd.subtract(expected_df.rdd).isEmpty()`
+- C) `assertDataFrameEqual(actual_df, expected_df, checkRowOrder=False, rtol=1e-4)`
+- D) `assertSchemaEqual(actual_df.schema, expected_df.schema, checkRowOrder=False)`
+
+**Correct Answer:** **C**
+
+> **Explanation:**  
+> `assertDataFrameEqual` from `pyspark.testing` compares both schema and data across two DataFrames. Setting `checkRowOrder=False` (the default) ensures distributed shuffle order differences do not cause false failures, while `rtol` / `atol` handle floating-point rounding tolerances.
+
 > **🎯 10-Second Elimination Rule:**  
-> Eliminate `spark.conf.set("spark.driver.memory")`, `.cache()`, and init scripts — none of them work on Serverless. Choose the **High-memory** option in the Environment panel.
+> Eliminate `.collect() == .collect()` (fails on row order and float precision), eliminate `.rdd` (Law 3 violation), and eliminate `assertSchemaEqual` when row data must be verified.
+
+---
+
+#### Question 1.11.2: Structuring PySpark Code for Modular Unit Testing
+A team has a 400-line Databricks notebook that reads directly from `spark.read.table("prod_catalog.bronze.orders")`, applies 6 business transformations inline, and writes to `prod_catalog.silver.clean_orders`. Whenever engineers want to test a change to one of the 6 rules, they have to clone the entire production table.
+
+How should the team refactor this code to support fast, isolated unit tests in CI/CD?
+
+- A) Keep the logic inside the notebook and call `dbutils.notebook.run()` from `pytest` with `"env": "prod"`.
+- B) Extract each business rule into a pure Python function (`DataFrame -> DataFrame`) inside a module, chain them in production with `df.transform(rule_fn)`, and test each function in `pytest` using small synthetic DataFrames and `assertDataFrameEqual`.
+- C) Convert all DataFrames to `.rdd` objects and test them using Python's `unittest.mock.patch`.
+- D) Add `%pip install pytest` to the top of the production notebook so tests run automatically during every production Lakeflow Pipeline update.
+
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> Decoupling I/O (`spark.read.table` / `df.write.saveAsTable`) from pure `DataFrame -> DataFrame` transformation functions allows production pipelines to chain transformations via `df.transform(fn)` while unit tests pass small synthetic DataFrames into the exact same functions and assert results with `assertDataFrameEqual`.
+
+> **🎯 10-Second Elimination Rule:**  
+> Look for `DataFrame.transform()` + pure functions + `pytest` + `assertDataFrameEqual`. Eliminate `.rdd` (Option C) and `%pip` in pipelines (Option D).
+
 
 
 

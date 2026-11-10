@@ -21,7 +21,7 @@
 
 | Section | Weight | Diagnostic Score | Weak Objectives Logged | Status |
 |---|---|---|---|---|
-| **Section 1: Developing Code** | 23% | Subpoints 1.1–1.10 Completed (21/21) | 1.1–1.10 Mastered | 🟡 `1.11 ACTIVE (Unit & Integration Testing in PySpark)` |
+| **Section 1: Developing Code** | 23% | Subpoints 1.1–1.11 Completed (23/23) | 1.1–1.11 Mastered | 🟡 `1.12 ACTIVE (Stateful Streaming: Watermarks, foreachBatch & Idempotency)` |
 | **Section 2: Data Ingestion & Acquisition** | 12% | Queued | To be covered after Section 1 | ⬜ Pending |
 | **Section 3: Data Manipulation** | 12% | Queued | To be covered after Section 2 | ⬜ Pending |
 | **Section 4: Monitoring and Alerting** | 10% | Not Diagnosed | None yet | ⬜ Pending |
@@ -46,7 +46,8 @@
 | `tests/test_subpoint_1_8_streaming_choice_sabotage.py` | Pytest Unit & Integration | ✅ Passed (2/2) | Section 1.8, 1.11 |
 | `resources/jobs.yml` + `src/notebooks/task_regional_processor.py` | Control-Flow (`condition_task` & `for_each_task`) | ✅ Deployed & Validated | Section 1.9 |
 | `tests/test_subpoint_1_9_control_flow_sabotage.py` | Pytest Unit (`@pytest.mark.unit`) | ✅ Passed (2/2) | Section 1.9, 1.11 |
-| `tests/test_subpoint_1_10_serverless_config_sabotage.py` | Pytest Unit (`@pytest.mark.unit`) | ✅ Passed (2/2) | Section 1.10, 1.11 |
+| `tests/unit/` | Unit Test Suite (`@pytest.mark.unit`) | ✅ Passed (8/8) | Section 1.7–1.11 |
+| `tests/integration/test_subpoint_1_11_pyspark_testing_sabotage.py` | PySpark Testing (`assertDataFrameEqual`, `assertSchemaEqual`) | ✅ Passed on Serverless (2/2) | Section 1.11 |
 | `tests/test_subpoint_1_7_cdc_sabotage.py` | Pytest Unit & Integration | ✅ Passed (2/2) | Section 1.7, 1.11 |
 | `tests/test_subpoint_1_6_gold_mv_sabotage.py` | Pytest Integration Test | ✅ Passed (2/2) | Section 1.6, 1.11 |
 | `src/generator/chaos_webhook_generator.py` | Volume Data Generator | ✅ Executed (750 rows in UC Volume) | Section 2.1, 3.2 |

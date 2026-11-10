@@ -17,7 +17,13 @@ NEVER use:
 
 import os
 
+import pandas.core.common as _pd_common
 import pytest
+
+# Compatibility shim for PySpark 3.5 `pyspark.testing` with Pandas 3.0+
+os.environ.setdefault("PYARROW_IGNORE_TIMEZONE", "1")
+if not hasattr(_pd_common, "_builtin_table"):
+    _pd_common._builtin_table = {}
 
 
 @pytest.fixture(scope="session", autouse=True)

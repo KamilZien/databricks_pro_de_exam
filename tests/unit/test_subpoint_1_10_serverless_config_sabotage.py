@@ -21,7 +21,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-JOBS_YML = Path(__file__).resolve().parent.parent / "resources" / "jobs.yml"
+JOBS_YML = Path(__file__).resolve().parent.parent.parent / "resources" / "jobs.yml"
 
 
 def _load_job() -> dict:
