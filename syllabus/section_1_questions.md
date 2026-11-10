@@ -480,8 +480,68 @@ How should the data engineer configure this branching logic in the Lakeflow Job?
 > **Explanation:**  
 > While `run_if` branches on task execution status (`SUCCESS` vs `FAILED`), a `condition_task` (`If/Else`) evaluates dynamic runtime values such as `taskValues` or job parameters on the Serverless Control Plane. Downstream tasks connect to the condition task by specifying `outcome: "true"` or `outcome: "false"` inside their `depends_on` block.
 
+---
+
+### Subpoint 1.10: Compute Selection & Serverless Configuration
+
+#### Question 1.10.1: Performance-Optimized vs. Standard Mode for Scheduled Workloads
+A Lakeflow Job runs every night at 01:00 and loads a Delta table. Business users first open the dashboard at 09:00. The team wants the lowest compute cost, and a few extra minutes of startup time is acceptable.
+
+Which configuration should the engineer choose?
+
+- A) Standard performance mode (`performance_target: STANDARD`) on the serverless job.
+- B) Performance-optimized mode, because the workload uses serverless compute.
+- C) A classic all-purpose cluster with an init script that keeps it warm all night.
+- D) Standard performance mode on an interactive serverless notebook, scheduled from the notebook UI.
+
+**Correct Answer:** **A**
+
+> **Explanation:**  
+> Serverless compute for Lakeflow Jobs and Pipelines offers two performance modes: `PERFORMANCE_OPTIMIZED` (default, warm pool for low startup latency) and `STANDARD` (up to ~70% cost reduction with a 4–6 minute cold start). For scheduled overnight jobs without tight startup SLAs, `STANDARD` mode minimizes DBU expenditure. Standard mode is not available for interactive notebooks (Option D).
+
 > **🎯 10-Second Elimination Rule:**  
-> Branching on a data metric (`anomaly_pct > 10.0`) when the upstream task succeeded $\rightarrow$ must use `condition_task` (`If/Else`) with `outcome: "true"` / `"false"`. Eliminate `run_if` (Option A) and `spark.conf` across tasks (Option D).
+> "Scheduled batch + minimize cost + startup delay acceptable" $\rightarrow$ `STANDARD` mode on the job. Eliminate interactive notebooks with Standard mode (Option D) and all-purpose clusters (Option C).
+
+---
+
+#### Question 1.10.2: Disabling Auto-Optimized Retries for Non-Idempotent Tasks
+A serverless job task calls an external API to create an invoice for each row. The task is not idempotent. During a transient failure, an invoice was created twice.
+
+What should the engineer do?
+
+- A) Disable auto-optimization (`disable_auto_optimization: true`) for that task so serverless does not retry it automatically.
+- B) Switch the job to performance-optimized mode.
+- C) Add a cluster init script that checks for duplicate invoices.
+- D) Increase the notebook's memory setting to the high-memory option.
+
+**Correct Answer:** **A**
+
+> **Explanation:**  
+> Serverless Lakeflow Jobs automatically retry failed tasks as part of auto-optimization. When a task is non-idempotent (e.g., triggering payments, invoices, or external webhooks that should run at most once), engineers must disable auto-optimized retries (`disable_auto_optimization: true`) at the task level to prevent duplicate side effects.
+
+> **🎯 10-Second Elimination Rule:**  
+> "Non-idempotent task + duplicate side effects on failure" $\rightarrow$ disable auto-optimized retries (`disable_auto_optimization: true`).
+
+---
+
+#### Question 1.10.3: Resolving Out-of-Memory (OOM) Errors in Serverless Notebooks
+A serverless notebook task fails with an out-of-memory error. The code collects a large result set to the driver and the team has confirmed it needs that data in memory.
+
+Which change fixes this on serverless compute?
+
+- A) Select the high-memory option in the notebook's Environment side panel.
+- B) Add `spark.conf.set("spark.driver.memory", "64g")` at the top of the notebook.
+- C) Call `.cache()` on the DataFrame before collecting it.
+- D) Attach an init script that raises the JVM heap size.
+
+**Correct Answer:** **A**
+
+> **Explanation:**  
+> On Databricks Serverless compute, driver memory size is managed via the notebook's Environment settings (enabling the High-Memory REPL option). Setting `spark.driver.memory` dynamically via `spark.conf.set()` (Option B), calling `.cache()` (Option C — unsupported on Spark Connect), and attaching cluster init scripts (Option D — unsupported on Serverless) are all invalid.
+
+> **🎯 10-Second Elimination Rule:**  
+> Eliminate `spark.conf.set("spark.driver.memory")`, `.cache()`, and init scripts — none of them work on Serverless. Choose the **High-memory** option in the Environment panel.
+
 
 
 
