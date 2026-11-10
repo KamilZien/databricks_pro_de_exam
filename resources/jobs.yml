@@ -5,6 +5,9 @@ resources:
   jobs:
     finops_e2e_workflow:
       name: "finops-e2e-workflow"
+      # Subpoint 1.10: scheduled batch, nobody waits -> cost-efficient Standard mode.
+      # Valid values: STANDARD | PERFORMANCE_OPTIMIZED (default).
+      performance_target: STANDARD
       tasks:
         # Task 1: Ingest & Score Producer (Emits taskValues)
         - task_key: ingest_and_score
@@ -33,6 +36,9 @@ resources:
             - task_key: process_success_report
             - task_key: failure_alert
           run_if: ALL_DONE
+          # Subpoint 1.10: this task writes an audit record (not idempotent), so we do NOT
+          # want serverless auto-optimization to silently retry it and duplicate the side effect.
+          disable_auto_optimization: true
           notebook_task:
             notebook_path: ../src/notebooks/task_cleanup.py
 
@@ -47,7 +53,8 @@ resources:
             right: "50"
 
         # Task 6: For Each Loop Task (Subpoint 1.9)
-        # Runs regional settlement notebook in parallel across 3 regions ONLY if condition is "false" (or independent)
+        # Runs regional settlement notebook in parallel across 3 regions ONLY if the condition is "true"
+        # (more than 50 quarantined records)
         - task_key: process_each_region
           depends_on:
             - task_key: check_quarantine_threshold
