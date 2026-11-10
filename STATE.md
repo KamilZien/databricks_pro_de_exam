@@ -1,9 +1,9 @@
 # STATE.md — Persistent Cross-Model Memory & 14-Day Sprint Tracker
 
-> **Last Updated:** 2026-10-25T18:28:00+01:00
-> **Sprint Progress:** Day 1 of 14
+> **Last Updated:** 2026-11-10T20:28:00+01:00
+> **Sprint Progress:** Day 2 of 14
 > **Sprint Phase:** Phase 1 — Diagnostic & Scaffolding (Days 1–3)
-> **Active Target:** Section 1: Developing Code for Data Processing using Python and SQL (23%)
+> **Active Target:** Section 2: Data Ingestion & Acquisition (12%) — Subpoint 2.1
 
 ---
 
@@ -11,8 +11,8 @@
 
 | Days | Phase | Target Focus | Status |
 |---|---|---|---|
-| **Days 1–3** | Phase 1: Diagnostics & Scaffolding | Diagnose Sections 1–9, Build Bronze/Silver pipelines | 🟡 `IN_PROGRESS` (Day 1) |
-| **Days 4–10** | Phase 2: Deep-Dive & Advanced Portfolio | Deep-dive weak objectives, Gold MVs, FinOps, Metric Views, ABAC, CI/CD | ⬜ `NOT_STARTED` |
+| **Days 1–3** | Phase 1: Diagnostics & Scaffolding | Master Section 1 (23%) & Section 2 (12%), Build Bronze/Silver/Gold pipelines | 🟡 `IN_PROGRESS` (Section 1 Complete, Section 2 Next) |
+| **Days 4–10** | Phase 2: Deep-Dive & Advanced Portfolio | Sections 3–9: Data Manipulation, Monitoring, FinOps, Security/ABAC, CI/CD, Modeling | ⬜ `NOT_STARTED` |
 | **Days 11–14** | Phase 3: Full Mock Blitz & Repair | Weighted full mocks (60 questions), 10-sec elimination drills, Repair loop | ⬜ `NOT_STARTED` |
 
 ---
@@ -21,8 +21,8 @@
 
 | Section | Weight | Diagnostic Score | Weak Objectives Logged | Status |
 |---|---|---|---|---|
-| **Section 1: Developing Code** | 23% | Subpoints 1.1–1.11 Completed (23/23) | 1.1–1.11 Mastered | 🟡 `1.12 ACTIVE (Stateful Streaming: Watermarks, foreachBatch & Idempotency)` |
-| **Section 2: Data Ingestion & Acquisition** | 12% | Queued | To be covered after Section 1 | ⬜ Pending |
+| **Section 1: Developing Code** | 23% | Subpoints 1.1–1.12 Completed (25/25 — 100%) | None — All 12 Subpoints Mastered | ✅ `COMPLETED` |
+| **Section 2: Data Ingestion & Acquisition** | 12% | Ready to Start (Subpoints 2.1–2.5) | None yet | 🟡 `2.1 NEXT` |
 | **Section 3: Data Manipulation** | 12% | Queued | To be covered after Section 2 | ⬜ Pending |
 | **Section 4: Monitoring and Alerting** | 10% | Not Diagnosed | None yet | ⬜ Pending |
 | **Section 5: Cost & Performance Optimization** | 15% | Not Diagnosed | None yet | ⬜ Pending |
@@ -37,33 +37,24 @@
 
 | Asset | Type | Status | Exam Alignment |
 |---|---|---|---|
-| `databricks.yml` | Declarative Automation Bundle | ✅ Configured | Section 1.1, 8.3 |
-| Lakeflow Pipeline | `[dev chinskagiera123] finops-lakehouse-bronze-silver` | ✅ Deployed (ID: 6057c8b8-c8b1-4889-9ce4-a4e16f8b3a1a) | Section 1.4, 8.3 |
-| Lakeflow Multi-Task Job | `finops-e2e-workflow` | ✅ Executed Run #336428047017692 (taskValues + run_if DAG) | Section 1.5, 8.2 |
-| `src/pipelines/04_gold_materialized_views.py` | Gold Materialized Views | ✅ Deployed & Materialized (24 rows, Liquid Clustering) | Section 1.6, 9.2 |
-| `src/pipelines/05_auto_cdc_pipeline.py` | AUTO CDC (SCD 1 & 2) | ✅ Validated (Out-of-order sequencing & tombstone deletes) | Section 1.7, 3.4 |
-| `src/pipelines/06_streaming_vs_declarative.py` | Pipeline Decision Boundary | ✅ Encapsulated (Managed vs Imperative foreachBatch) | Section 1.8, 1.12 |
-| `tests/test_subpoint_1_8_streaming_choice_sabotage.py` | Pytest Unit & Integration | ✅ Passed (2/2) | Section 1.8, 1.11 |
-| `resources/jobs.yml` + `src/notebooks/task_regional_processor.py` | Control-Flow (`condition_task` & `for_each_task`) | ✅ Deployed & Validated | Section 1.9 |
-| `tests/test_subpoint_1_9_control_flow_sabotage.py` | Pytest Unit (`@pytest.mark.unit`) | ✅ Passed (2/2) | Section 1.9, 1.11 |
-| `tests/unit/` | Unit Test Suite (`@pytest.mark.unit`) | ✅ Passed (8/8) | Section 1.7–1.11 |
-| `tests/integration/test_subpoint_1_11_pyspark_testing_sabotage.py` | PySpark Testing (`assertDataFrameEqual`, `assertSchemaEqual`) | ✅ Passed on Serverless (2/2) | Section 1.11 |
-| `tests/test_subpoint_1_7_cdc_sabotage.py` | Pytest Unit & Integration | ✅ Passed (2/2) | Section 1.7, 1.11 |
-| `tests/test_subpoint_1_6_gold_mv_sabotage.py` | Pytest Integration Test | ✅ Passed (2/2) | Section 1.6, 1.11 |
-| `src/generator/chaos_webhook_generator.py` | Volume Data Generator | ✅ Executed (750 rows in UC Volume) | Section 2.1, 3.2 |
-| `portfolio_catalog.bronze.raw_events` | Delta Table | ✅ Ingested (751 rows, VARIANT, Liquid Clustering) | Section 1.4, 3.2, 5.2 |
-| `portfolio_catalog.silver.clean_events` | Delta Table | ✅ Ingested (693 clean rows, Liquid Clustering, CDF) | Section 1.4, 3.4, 5.2 |
-| `portfolio_catalog.silver.quarantine_events` | Delta Table | ✅ Ingested (58 quarantined rows with reason tags) | Section 3.4 |
-| `portfolio_catalog.billing_mock.usage` | Delta Table | ✅ Ingested (500 rows, Liquid Clustering) | Section 4.1, 5.2 |
-| `tests/test_module1_bronze.py` | Pytest Integration Test | ✅ Passed (3/3) | Section 1.11 |
-| `tests/test_module2_silver.py` | Pytest Integration Test | ✅ Passed (2/2) | Section 1.11, 3.4 |
-| `tests/test_exam_drill.py` | Module 1 Sabotage Drill Test | ✅ Fixed & Passed (1/1) | Section 1.10, 5.2, 5.3 |
-| `tests/test_silver_sabotage_drill.py` | Module 2 Sabotage Drill Test | 🟡 Injected (Pending user fix) | Section 3.4, 5.4 |
+| `databricks.yml` | Declarative Automation Bundle | ✅ Configured & Deployed | Section 1.1, 8.3 |
+| `resources/pipelines.yml` | Lakeflow Pipeline (`[dev chinskagiera123] finops-lakehouse-bronze-silver`) | ✅ Deployed (ID: 6057c8b8-c8b1-4889-9ce4-a4e16f8b3a1a) | Section 1.2, 1.4, 8.3 |
+| `resources/jobs.yml` | Lakeflow Multi-Task Job (`finops-e2e-workflow`) | ✅ Deployed (`taskValues`, `run_if`, `condition_task`, `for_each_task`, `STANDARD` mode, `disable_auto_optimization`) | Section 1.5, 1.9, 1.10, 8.2 |
+| `src/pipelines/01_bronze_variant.py` | Bronze Auto Loader + `VARIANT` | ✅ Deployed & Tested (`portfolio_catalog.bronze.raw_events`, 751 rows) | Section 1.4, 3.2, 5.2 |
+| `src/pipelines/02_silver_cdc_quarantine.py` | Silver Validation & Quarantine Split | ✅ Deployed & Tested (`clean_events`: 693 rows, `quarantine_events`: 58 rows) | Section 1.4, 3.4, 5.2 |
+| `src/pipelines/03_udf_enrichment.py` | Unity Catalog SQL & Python UDFs | ✅ Registered & Verified (`calculate_finops_tax`, `score_customer_churn`) | Section 1.3 |
+| `src/pipelines/04_gold_materialized_views.py` | Gold Materialized Views (`CLUSTER BY`) | ✅ Deployed & Materialized (`daily_billing_summary`, `customer_churn_risk`) | Section 1.6, 9.2 |
+| `src/pipelines/05_auto_cdc_pipeline.py` | `AUTO CDC` (SCD Type 1 & Type 2) | ✅ Validated (Out-of-order `SEQUENCE BY` & tombstone deletes) | Section 1.7 |
+| `src/pipelines/06_streaming_vs_declarative.py` | Pipeline Decision Boundary | ✅ Encapsulated (Managed Lakeflow vs Imperative `foreachBatch`) | Section 1.8, 1.12 |
+| `tests/unit/` | Unit Test Suite (`@pytest.mark.unit`) | ✅ Passed (8/8) | Section 1.7–1.10 |
+| `tests/integration/` | Serverless Integration Suite (`@pytest.mark.integration`) | ✅ Passed (14/14 across `1.3`, `1.6`, `1.11`, `1.12`, Bronze & Silver) | Section 1.3–1.12 |
+| `syllabus/section_1_developing_code.md` | Comprehensive Section 1 Study Guide + Master Q&A Vault | ✅ Expanded (1.1–1.12 + 19 User Q&As) | Section 1 (23%) |
+| `syllabus/section_1_questions.md` | Section 1 Calibrated Question Bank | ✅ Complete (25/25 Graded Questions) | Section 1 (23%) |
 
 ---
 
 ## 4. HANDOFF NOTES FOR ALL MODELS
 
 > - All models MUST ground explanations in official Databricks docs (`https://docs.databricks.com/...`).
-> - We are on **Day 1**. The immediate next step is **`/orient Section 1`** followed by **`/diagnose Section 1`**.
-> - Remember the Renamed Products table in `EXAM_GUIDE.md` §1 (e.g., Lakeflow Pipelines, AUTO CDC, OpenSharing, Metric Views).
+> - **Section 1 (1.1–1.12) is 100% complete.** Next step is **Section 2: Data Ingestion & Acquisition (12%) — Subpoint 2.1** following the 5-step sequence (`[1. LEARN] -> [2. DEVELOP] -> [3. DEBUG] -> [4. CHECK] -> [5. QUESTION]`).
+> - Remember the Renamed Products table in `EXAM_GUIDE.md` §1 (e.g., Lakeflow Pipelines, AUTO CDC, Lakeflow Connect, OpenSharing, Metric Views).

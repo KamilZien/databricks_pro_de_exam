@@ -583,10 +583,52 @@ How should the team refactor this code to support fast, isolated unit tests in C
 > **🎯 10-Second Elimination Rule:**  
 > Look for `DataFrame.transform()` + pure functions + `pytest` + `assertDataFrameEqual`. Eliminate `.rdd` (Option C) and `%pip` in pipelines (Option D).
 
+---
 
+### Subpoint 1.12: Structured Streaming Stateful Processing & Idempotency
 
+#### Question 1.12.1: Preventing Duplicate Writes in `foreachBatch` Retries
+A data engineer uses `writeStream.foreachBatch(process_batch)` to write a streaming DataFrame to two different Delta tables inside each micro-batch. During a transient network error, the write to the first table succeeds, the write to the second table fails, and Structured Streaming automatically retries the exact same micro-batch (`batch_id = 42`).
 
+Which configuration inside `process_batch(batch_df, batch_id)` ensures that retrying `batch_id = 42` does **not** write duplicate rows to the first Delta table?
 
+- A) Call `batch_df.cache()` before the first write and `batch_df.unpersist()` after the second write.
+- B) Include `.option("txnAppId", "table_1_writer").option("txnVersion", str(batch_id))` on the first Delta write and `.option("txnAppId", "table_2_writer").option("txnVersion", str(batch_id))` on the second Delta write.
+- C) Set `.outputMode("complete")` on the streaming query and delete the checkpoint directory before each retry.
+- D) Use `.withWatermark("event_time", "10 minutes")` on the input stream; watermarks automatically roll back partial `foreachBatch` Delta commits.
 
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> In Structured Streaming, `foreachBatch` provides at-least-once guarantees by default. To achieve exactly-once idempotent writes to Delta Lake tables inside `foreachBatch`, each target table write must specify a unique application identifier (`txnAppId`) and the micro-batch ID (`txnVersion = batch_id`). Delta Lake records `(txnAppId, txnVersion)` in its transaction log (`_delta_log`) and automatically skips duplicate writes if a micro-batch is re-executed.
+
+> **🎯 10-Second Elimination Rule:**  
+> "`foreachBatch` + prevent duplicate Delta writes on retry" $\rightarrow$ `.option("txnAppId", ...).option("txnVersion", batch_id)`. Eliminate `.cache()` (Serverless Law 3 violation).
+
+---
+
+#### Question 1.12.2: Stateful Deduplication and Unbounded State Growth
+A streaming pipeline ingests payment webhook events (`event_id`, `event_timestamp`, `amount`) and removes retry duplicates. The engineer writes:
+
+```python
+deduped_df = raw_stream.withWatermark("event_timestamp", "2 hours").dropDuplicates(["event_id", "event_timestamp"])
+```
+
+In production, duplicate retry webhooks with the **same `event_id`** arrive 30 seconds later with a **newer `event_timestamp`**, and all of them slip through into the target table as duplicates. However, if the engineer removes `.withWatermark(...)`, the cluster eventually crashes with an `OutOfMemoryError` (`OOM`).
+
+How should the engineer fix this code so duplicates with different retry timestamps are dropped AND state memory remains bounded?
+
+- A) Keep `.withWatermark("event_timestamp", "2 hours")` and change `.dropDuplicates(["event_id"])` to deduplicate only on the business key (`event_id`).
+- B) Remove `.withWatermark(...)` and call `.dropDuplicates(["event_id"])` inside a `Trigger.ProcessingTime("5 seconds")` loop.
+- C) Keep `.dropDuplicates(["event_id", "event_timestamp"])` and change the watermark to `"0 seconds"`.
+- D) Replace `.dropDuplicates(...)` with `GROUP BY event_id` in `append` output mode without a watermark.
+
+**Correct Answer:** **A**
+
+> **Explanation:**  
+> Including `event_timestamp` inside `.dropDuplicates(["event_id", "event_timestamp"])` treats two retry deliveries of the same `event_id` with different retry timestamps as distinct records. Deduplicating only on the business key (`.dropDuplicates(["event_id"])`) while maintaining `.withWatermark("event_timestamp", "2 hours")` drops retry duplicates arriving within the 2-hour watermark threshold and safely evicts state keys older than the watermark to prevent `OOM`.
+
+> **🎯 10-Second Elimination Rule:**  
+> For streaming deduplication: always combine `.withWatermark("<ts_col>", "<threshold>")` + `.dropDuplicates(["<business_key>"])` (never include the varying retry timestamp in `dropDuplicates`, and never remove the watermark).
 
 
