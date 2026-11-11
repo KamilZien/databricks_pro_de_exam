@@ -101,4 +101,35 @@ STORED AS SCD TYPE 1;
 ### 4. Automated Schema Evolution
 - When upstream operational databases add, rename, or drop columns, Lakeflow Connect automatically detects the DDL changes and evolves the destination tables without crashing the pipeline.
 
+---
+
+## Subpoint 2.4: OpenSharing (Delta Sharing) & Databricks Clean Rooms
+
+### 1. OpenSharing Protocols: D2D vs. D2O
+| Sharing Mode | Recipient Environment | How Access Is Established | Credential Management |
+|---|---|---|---|
+| **Databricks-to-Databricks (D2D)** | Recipient has Databricks with Unity Catalog | `CREATE RECIPIENT <name> USING ID '<sharing_identifier>';` | **Zero credential files.** Direct Unity Catalog metastore-to-metastore trust. |
+| **Databricks-to-Open (D2O)** | External clients (Pandas, Apache Spark on-prem, PowerBI, Tableau, Excel) | `CREATE RECIPIENT <name>;` (generates activation link) | Recipient downloads a secure **bearer token profile JSON file** (HTTPS endpoint, bearer token, expiration timestamp). |
+
+### 2. Sharing Change Data Feed (CDF)
+- To allow recipients to read incremental row changes via `table_changes(...)` or `readChangeFeed`, the provider must explicitly include CDF in the share:
+  ```sql
+  ALTER SHARE finops_partner_share ADD TABLE portfolio_catalog.silver.clean_events WITH CHANGE DATA FEED;
+  ```
+
+### 3. Token Rotation for D2O
+- When an external recipient's bearer token is nearing expiration, the provider rotates the token:
+  ```sql
+  ALTER RECIPIENT external_partner ROTATE TOKEN;
+  ```
+- Allows a configurable grace period where both old and new tokens remain valid during credential migration.
+
+### 4. Databricks Clean Rooms
+- **The Problem:** Two or more parties want to run analytical joins on shared data, but regulations or competitive concerns forbid either party from seeing the other's raw rows or PII.
+- **The Solution:** A secure, isolated multi-party compute environment where:
+  - Both parties contribute data without copying raw files to third parties.
+  - Queries are restricted to pre-approved aggregation templates (e.g. `COUNT(*)`, `AVG(spend)`).
+  - Differential privacy prevents reverse-engineering individual records.
+
+
 

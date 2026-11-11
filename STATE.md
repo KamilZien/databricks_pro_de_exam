@@ -22,7 +22,7 @@
 | Section | Weight | Diagnostic Score | Weak Objectives Logged | Status |
 |---|---|---|---|---|
 | **Section 1: Developing Code** | 23% | Subpoints 1.1–1.12 Completed (25/25 — 100%) | None — All 12 Subpoints Mastered | ✅ `COMPLETED` |
-| **Section 2: Data Ingestion & Acquisition** | 12% | Subpoints 2.1–2.3 Completed (6/6 — 100%) | Subpoints 2.1–2.3 Mastered | 🟡 `2.4 NEXT (OpenSharing & Clean Rooms)` |
+| **Section 2: Data Ingestion & Acquisition** | 12% | Subpoints 2.1–2.4 Completed (8/8 — 100%) | Subpoints 2.1–2.4 Mastered | 🟡 `2.5 NEXT (Lakehouse Federation)` |
 | **Section 3: Data Manipulation** | 12% | Queued | To be covered after Section 2 | ⬜ Pending |
 | **Section 4: Monitoring and Alerting** | 10% | Not Diagnosed | None yet | ⬜ Pending |
 | **Section 5: Cost & Performance Optimization** | 15% | Not Diagnosed | None yet | ⬜ Pending |

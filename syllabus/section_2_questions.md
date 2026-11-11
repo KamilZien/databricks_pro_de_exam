@@ -168,4 +168,56 @@ What is the recommended Databricks architecture to securely manage authenticatio
 > **🎯 10-Second Elimination Rule:**  
 > "Secure external database credentials in Unity Catalog" $\rightarrow$ Unity Catalog **Connection** (`CREATE CONNECTION`) + **Databricks Secret Scope**.
 
+---
+
+### Subpoint 2.4: OpenSharing & Clean Rooms
+
+#### Question 2.4.1: OpenSharing D2D vs. D2O Credential Governance
+A data sharing administrator at a pharmaceutical company needs to share a governed Delta table `portfolio_catalog.clinical.trial_results` with two external partners:
+1. **Partner A:** Uses Databricks with Unity Catalog enabled.
+2. **Partner B:** Uses an external Python data science environment running on-premises that queries data using the open-source Delta Sharing client.
+
+Which procedure correctly provisions access for each partner while adhering to Databricks security best practices?
+
+- A) Send an encrypted `.share` credential file containing an activation URL via corporate email to both Partner A and Partner B.
+- B) Provision Partner A using Databricks-to-Databricks (D2D) by creating a recipient with their Unity Catalog **Metastore / Sharing ID** (no credential file needed); provision Partner B using Databricks-to-Open (D2O) by generating an activation URL to download a **bearer token credential profile JSON file**.
+- C) Grant Partner A and Partner B direct IAM `s3:GetObject` permissions to the underlying Delta table S3 bucket.
+- D) Configure a Lakehouse Federation foreign catalog in Partner A and Partner B's environments pointing to the pharma company's JDBC endpoint.
+
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> In OpenSharing:
+> - Databricks-to-Databricks (D2D) connects two Unity Catalog metastores directly via the recipient's Sharing Identifier (`USING ID '<metastore_id>'`). No credential files, bearer tokens, or activation URLs exist for D2D.
+> - Databricks-to-Open (D2O) provisions external, non-Databricks clients via an activation URL from which the recipient downloads a credential profile JSON file containing a temporary bearer token and HTTPS endpoint.
+
+> **🎯 10-Second Elimination Rule:**  
+> "Partner has Databricks UC" $\rightarrow$ D2D with Sharing ID (no credential files). "Partner has non-Databricks client" $\rightarrow$ D2O with bearer token file.
+
+---
+
+#### Question 2.4.2: Multi-Party Collaboration & Privacy Preservation
+A retail bank and a streaming media provider want to collaborate to identify consumer overlap and evaluate joint co-branded subscription promotions. 
+
+Compliance and data privacy regulations strictly mandate:
+1. Neither company is allowed to see the other company's individual customer identities, email addresses, or raw transaction rows.
+2. The collaboration must only produce aggregated analytical results (e.g., total count of overlapping subscribers, average subscription tenure).
+3. The underlying data must remain in each company's respective cloud storage account without copying raw data to an external third-party server.
+
+Which Databricks feature should the data architect implement to fulfill this requirement?
+
+- A) OpenSharing (D2O) with a 24-hour bearer token expiration window.
+- B) **Databricks Clean Rooms** configured with approved aggregation query templates and differential privacy controls.
+- C) A shared Unity Catalog Dynamic View configured with `MASK` functions on the email column.
+- D) Lakeflow Connect with a unidirectional snapshot sync to a shared AWS S3 bucket.
+
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> Databricks Clean Rooms provides a privacy-preserving environment where multiple participants can analyze joint data assets without sharing raw data with one another. Clean Rooms enforces strict governance: raw rows cannot be queried directly or exported, participants can only run approved aggregation queries, and differential privacy guarantees prevent re-identification of individuals. Standard OpenSharing (Option A) and Dynamic Views (Option C) provide access to table rows, violating the strict privacy mandate.
+
+> **🎯 10-Second Elimination Rule:**  
+> "Collaborate on joint data without either party seeing raw rows/PII" $\rightarrow$ **Databricks Clean Rooms**.
+
+
 
