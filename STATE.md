@@ -22,7 +22,7 @@
 | Section | Weight | Diagnostic Score | Weak Objectives Logged | Status |
 |---|---|---|---|---|
 | **Section 1: Developing Code** | 23% | Subpoints 1.1–1.12 Completed (25/25 — 100%) | None — All 12 Subpoints Mastered | ✅ `COMPLETED` |
-| **Section 2: Data Ingestion & Acquisition** | 12% | Subpoint 2.1 Completed (2/2 — 100%) | Subpoint 2.1 Mastered | 🟡 `2.2 NEXT (Incremental CDC into Delta or Iceberg Targets)` |
+| **Section 2: Data Ingestion & Acquisition** | 12% | Subpoints 2.1–2.2 Completed (4/4 — 100%) | Subpoints 2.1, 2.2 Mastered | 🟡 `2.3 NEXT (Relational CDC with Lakeflow Connect)` |
 | **Section 3: Data Manipulation** | 12% | Queued | To be covered after Section 2 | ⬜ Pending |
 | **Section 4: Monitoring and Alerting** | 10% | Not Diagnosed | None yet | ⬜ Pending |
 | **Section 5: Cost & Performance Optimization** | 15% | Not Diagnosed | None yet | ⬜ Pending |

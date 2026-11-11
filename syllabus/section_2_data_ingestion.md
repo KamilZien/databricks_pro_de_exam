@@ -50,3 +50,33 @@
     'delta.universalFormat.enabledFormats' = 'iceberg'
   );
   ```
+
+---
+
+## Subpoint 2.2: Incremental CDC Pipelines Targeting Delta & Iceberg (UniForm)
+
+### 1. The Role of `FLOW` in Lakeflow Declarative Pipelines
+- **Table vs. Flow Separation:**
+  - A **Streaming Table** (`CREATE STREAMING TABLE ...`) is the physical destination table in Unity Catalog.
+  - A **`FLOW`** (`CREATE FLOW ... AS AUTO CDC INTO ...`) is the managed ingestion process that extracts from the source stream and merges into the target table.
+  - Multiple flows can target the same destination table.
+
+### 2. Modern `AUTO CDC` DDL Syntax
+```sql
+CREATE FLOW inventory_cdc_flow
+AS AUTO CDC INTO portfolio_catalog.silver.dim_inventory
+FROM STREAM(portfolio_catalog.bronze.inventory_cdc_raw)
+KEYS (item_id)
+APPLY AS DELETE WHEN operation = 'DELETE'
+SEQUENCE BY commit_timestamp
+STORED AS SCD TYPE 1;
+```
+
+### 3. Deletion Vectors & CDC Performance
+- **Write Amplification Problem:** Traditional Delta had to rewrite entire 100MB Parquet files just to update/delete 1 row.
+- **Deletion Vectors Solution (`delta.enableDeletionVectors = true`):** Leaves the original Parquet files intact and writes lightweight bitmap vectors indicating which row indexes are deleted, reducing CDC write amplification by up to 90%.
+
+### 4. SCD Type 1 vs. SCD Type 2 CDC Constraints
+- `APPLY AS TRUNCATE` is supported **only on SCD Type 1** (cannot truncate historical audit chains in SCD Type 2).
+- `SEQUENCE BY <col>` ensures out-of-order events arriving over the network do not overwrite newer database commits.
+

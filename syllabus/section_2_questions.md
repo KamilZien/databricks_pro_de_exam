@@ -47,3 +47,78 @@ Which Delta Lake feature and configuration should the engineer implement?
 
 > **🎯 10-Second Elimination Rule:**  
 > "Read Delta tables from Athena / Trino as Iceberg without duplicating data or pipelines" $\rightarrow$ Universal Format (UniForm) via `'delta.universalFormat.enabledFormats' = 'iceberg'`.
+
+---
+
+### Subpoint 2.2: Incremental CDC Pipelines into Delta or Iceberg Targets
+
+#### Question 2.2.1: CDC Pipeline Out-of-Order Delivery & Tombstone Deletes
+A data engineer is designing a Lakeflow Declarative Pipeline in Databricks to synchronize an operational inventory database with a Unity Catalog Silver table (`silver.dim_inventory`). 
+
+Due to network latency between regions, CDC events frequently arrive out of chronological order. In addition, when an item is permanently discontinued in the operational database, a tombstone record is emitted with `operation = 'DELETE'`.
+
+Which Lakeflow SQL statement correctly updates `silver.dim_inventory` as an **SCD Type 1** table, ensuring late-arriving older events do not overwrite newer inventory balances and deleted items are removed?
+
+- A)
+  ```sql
+  CREATE FLOW inventory_cdc_flow
+  AS AUTO CDC INTO portfolio_catalog.silver.dim_inventory
+  FROM STREAM(portfolio_catalog.bronze.inventory_cdc_raw)
+  KEYS (item_id)
+  APPLY AS DELETE WHEN operation = 'DELETE'
+  SEQUENCE BY event_timestamp
+  STORED AS SCD TYPE 1;
+  ```
+- B)
+  ```sql
+  APPLY CHANGES INTO portfolio_catalog.silver.dim_inventory
+  FROM STREAM(portfolio_catalog.bronze.inventory_cdc_raw)
+  KEYS (item_id)
+  IGNORE DELETES
+  SEQUENCE BY event_timestamp;
+  ```
+- C)
+  ```sql
+  CREATE OR REFRESH STREAMING TABLE dim_inventory AS
+  SELECT * FROM STREAM(portfolio_catalog.bronze.inventory_cdc_raw)
+  WHERE operation != 'DELETE'
+  CLUSTER BY (item_id);
+  ```
+- D)
+  ```sql
+  CREATE FLOW inventory_cdc_flow
+  AS AUTO CDC INTO portfolio_catalog.silver.dim_inventory
+  FROM STREAM(portfolio_catalog.bronze.inventory_cdc_raw)
+  KEYS (item_id)
+  APPLY AS TRUNCATE WHEN operation = 'DELETE'
+  STORED AS SCD TYPE 2;
+  ```
+
+**Correct Answer:** **A**
+
+> **Explanation:**  
+> In Lakeflow Declarative Pipelines, the `CREATE FLOW ... AS AUTO CDC INTO` API merges CDC change events into a target table. Specifying `KEYS (item_id)` defines the primary identity, `APPLY AS DELETE WHEN operation = 'DELETE'` removes records carrying delete tombstones, and `SEQUENCE BY event_timestamp` prevents late-arriving older events from overwriting newer commits. Option B uses deprecated `APPLY CHANGES INTO` syntax, Option C uses a regular streaming table which cannot apply row-level updates/deletes, and Option D specifies `APPLY AS TRUNCATE` with SCD Type 2 (which is invalid).
+
+> **🎯 10-Second Elimination Rule:**  
+> Modern CDC syntax requires `CREATE FLOW ... AS AUTO CDC INTO`. Eliminate `APPLY CHANGES INTO` (Option B) and eliminate `APPLY AS TRUNCATE` on SCD Type 2 (Option D).
+
+---
+
+#### Question 2.2.2: CDC Target Optimization & Write Amplification
+A high-volume CDC pipeline ingests 20 million updates and deletes per day into a 10-terabyte Delta table in Unity Catalog. The operations team notices severe write amplification and high cloud storage I/O costs because even single-row updates are causing entire 100MB Parquet data files to be rewritten to disk.
+
+Which Delta Lake table feature should the engineer verify is enabled on the target table to eliminate the need to rewrite entire Parquet files on row-level updates and deletes?
+
+- A) Predictive Optimization with `OPTIMIZE ... ZORDER BY`
+- B) Deletion Vectors (`delta.enableDeletionVectors = true`)
+- C) Auto-compaction with `delta.autoOptimize.optimizeWrite = true`
+- D) Change Data Feed (`delta.enableChangeDataFeed = true`)
+
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> Deletion Vectors (`delta.enableDeletionVectors = true`) decouple row deletion and updates from file rewriting. When rows are modified or deleted, Delta writes a small bitmap file tracking the deleted row offsets instead of rewriting the entire Parquet file, drastically reducing write amplification, latency, and cloud storage costs. Option A mentions `ZORDER BY` (deprecated in favor of Liquid Clustering), Option C deals with file sizes on initial write, and Option D exposes row-level changes for downstream consumers.
+
+> **🎯 10-Second Elimination Rule:**  
+> "Cure write amplification on updates and deletes" $\rightarrow$ Deletion Vectors (`delta.enableDeletionVectors = true`).
+
