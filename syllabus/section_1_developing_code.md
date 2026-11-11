@@ -11,18 +11,18 @@
 
 | # | Official Exam Objective | CertSafari Sub-Lessons | Repo Implementation |
 |---|---|---|---|
-| **1.1** | Scalable Python project structures for Declarative Automation Bundles (`databricks.yml`) | • `1.1.1` Bundle project structure: `databricks.yml`, `include`, and targets<br>• `1.1.2` Python code in bundles: wheel artifacts, library dependencies, and Python-defined resources | `databricks.yml`, `resources/pipelines.yml`, `resources/jobs.yml`, `pyproject.toml` |
-| **1.2** | Troubleshooting library & dependency conflicts across serverless, pipeline, and bundle environments | • `1.2.1` Troubleshooting serverless library installs: paths, architecture, private repos, and `%pip`<br>• `1.2.2` Fixing library dependencies in Lakeflow pipelines and bundle deployments | `resources/pipelines.yml` (`pipelines.pip.requirements`), `pyproject.toml` |
-| **1.3** | Develop User-Defined Functions (UDFs) using Pandas, Python, and SQL, including Unity Catalog functions | • `1.3.1` Session-scoped Python and pandas UDFs in PySpark<br>• `1.3.2` Unity Catalog functions: SQL, Python, and Batch Python UDFs | `src/pipelines/03_udf_enrichment.py`, `tests/integration/test_subpoint_1_3_udf_sabotage.py` |
-| **1.4** | Create production-ready streaming pipelines using Lakeflow Pipelines and Auto Loader | • `1.4.1` Auto Loader ingestion into Lakeflow Streaming Tables<br>• `1.4.2` Running Auto Loader pipelines in production | `src/pipelines/01_bronze_variant.py`, `src/pipelines/02_silver_cdc_quarantine.py` |
-| **1.5** | Create and automate ETL workloads using Lakeflow Jobs via UI, API, and CLI | • `1.5.1` Building, triggering, and parameterizing ETL jobs<br>• `1.5.2` Automating jobs via CLI, SDK, REST API, triggers, and `taskValues` | `resources/jobs.yml`, `src/notebooks/task_producer.py`, `task_consumer_report.py`, `task_cleanup.py` |
-| **1.6** | Choose between a Streaming Table and a Materialized View for latency, cost, and refresh needs | • `1.6.1` Streaming Tables vs. Materialized Views semantics & correctness<br>• `1.6.2` Latency, refresh costs, incremental refresh, and pipeline modes | `src/pipelines/04_gold_materialized_views.py`, `tests/integration/test_subpoint_1_6_gold_mv_sabotage.py` |
-| **1.7** | Implement CDC pipelines using `AUTO CDC` APIs in Lakeflow Pipelines (`stored_as_scd_type`) | • `1.7.1` AUTO CDC flows and SCD Type 1 in Lakeflow Pipelines<br>• `1.7.2` SCD Type 2 history, `SEQUENCE BY`, deletes, and truncates | `src/pipelines/05_auto_cdc_pipeline.py`, `tests/unit/test_subpoint_1_7_cdc_sabotage.py` |
-| **1.8** | Choose between Spark Structured Streaming and Apache Spark™ Declarative Pipelines | • `1.8.1` Control vs. Automation trade-offs<br>• `1.8.2` Streaming trigger modes (`availableNow`, `processingTime`, `continuous`) | `src/pipelines/06_streaming_vs_declarative.py`, `tests/unit/test_subpoint_1_8_streaming_choice_sabotage.py` |
-| **1.9** | Create Lakeflow Jobs using control-flow operators (`If/Else` conditions and `For Each` loops) | • `1.9.1` If/else `condition_task` in Lakeflow Jobs<br>• `1.9.2` `for_each_task` loops, `concurrency`, and Repair Runs | `resources/jobs.yml`, `src/notebooks/task_regional_processor.py`, `tests/unit/test_subpoint_1_9_control_flow_sabotage.py` |
-| **1.10** | Choose appropriate compute & configuration for environments, dependencies, memory, and retries | • `1.10.1` Serverless environments and dependency management<br>• `1.10.2` Performance mode (`STANDARD` vs `PERFORMANCE_OPTIMIZED`), high-memory REPL, `disable_auto_optimization` | `resources/jobs.yml`, `tests/unit/test_subpoint_1_10_serverless_config_sabotage.py` |
-| **1.11** | Develop unit and integration tests using `assertDataFrameEqual`, `assertSchemaEqual`, `DataFrame.transform`, and `pytest` | • `1.11.1` Testing PySpark transformations with `assertDataFrameEqual` and `pytest`<br>• `1.11.2` Running Databricks tests: unit tests, notebook tests, and pipeline integration tests | `tests/conftest.py`, `tests/integration/test_subpoint_1_11_pyspark_testing_sabotage.py` |
-| **1.12** | Apply Structured Streaming stateful-processing semantics (watermarks, output modes, `foreachBatch`, checkpoints) | • `1.12.1` Watermarks, state store cleanup, output modes, idempotent `foreachBatch` (`txnAppId`, `txnVersion`), and checkpoints | `tests/integration/test_subpoint_1_12_stateful_streaming_sabotage.py` |
+| **1.1** | Scalable Python project structures for Declarative Automation Bundles (`databricks.yml`) | `1.1.1` Bundle project structure: `databricks.yml`, `include`, and targets; `1.1.2` Python code in bundles: wheel artifacts, library dependencies, and Python-defined resources | `databricks.yml`, `resources/pipelines.yml`, `resources/jobs.yml`, `pyproject.toml` |
+| **1.2** | Troubleshooting library & dependency conflicts across serverless, pipeline, and bundle environments | `1.2.1` Troubleshooting serverless library installs: paths, architecture, private repos, and `%pip`; `1.2.2` Fixing library dependencies in Lakeflow pipelines and bundle deployments | `resources/pipelines.yml` (`pipelines.pip.requirements`), `pyproject.toml` |
+| **1.3** | Develop User-Defined Functions (UDFs) using Pandas, Python, and SQL, including Unity Catalog functions | `1.3.1` Session-scoped Python and pandas UDFs in PySpark; `1.3.2` Unity Catalog functions: SQL, Python, and Batch Python UDFs | `src/pipelines/03_udf_enrichment.py`, `tests/integration/section_1/test_subpoint_1_3_udf_sabotage.py` |
+| **1.4** | Create production-ready streaming pipelines using Lakeflow Pipelines and Auto Loader | `1.4.1` Auto Loader ingestion into Lakeflow Streaming Tables; `1.4.2` Running Auto Loader pipelines in production | `src/pipelines/01_bronze_variant.py`, `src/pipelines/02_silver_cdc_quarantine.py` |
+| **1.5** | Create and automate ETL workloads using Lakeflow Jobs via UI, API, and CLI | `1.5.1` Building, triggering, and parameterizing ETL jobs; `1.5.2` Automating jobs via CLI, SDK, REST API, triggers, and `taskValues` | `resources/jobs.yml`, `src/notebooks/task_producer.py`, `task_consumer_report.py`, `task_cleanup.py` |
+| **1.6** | Choose between a Streaming Table and a Materialized View for latency, cost, and refresh needs | `1.6.1` Streaming Tables vs. Materialized Views semantics & correctness; `1.6.2` Latency, refresh costs, incremental refresh, and pipeline modes | `src/pipelines/04_gold_materialized_views.py`, `tests/integration/section_1/test_subpoint_1_6_gold_mv_sabotage.py` |
+| **1.7** | Implement CDC pipelines using `AUTO CDC` APIs in Lakeflow Pipelines (`stored_as_scd_type`) | `1.7.1` AUTO CDC flows and SCD Type 1 in Lakeflow Pipelines; `1.7.2` SCD Type 2 history, `SEQUENCE BY`, deletes, and truncates | `src/pipelines/05_auto_cdc_pipeline.py`, `tests/unit/section_1/test_subpoint_1_7_cdc_sabotage.py` |
+| **1.8** | Choose between Spark Structured Streaming and Apache Spark™ Declarative Pipelines | `1.8.1` Control vs. Automation trade-offs; `1.8.2` Streaming trigger modes (`availableNow`, `processingTime`, `continuous`) | `src/pipelines/06_streaming_vs_declarative.py`, `tests/unit/section_1/test_subpoint_1_8_streaming_choice_sabotage.py` |
+| **1.9** | Create Lakeflow Jobs using control-flow operators (`If/Else` conditions and `For Each` loops) | `1.9.1` If/else `condition_task` in Lakeflow Jobs; `1.9.2` `for_each_task` loops, `concurrency`, and Repair Runs | `resources/jobs.yml`, `src/notebooks/task_regional_processor.py`, `tests/unit/section_1/test_subpoint_1_9_control_flow_sabotage.py` |
+| **1.10** | Choose appropriate compute & configuration for environments, dependencies, memory, and retries | `1.10.1` Serverless environments and dependency management; `1.10.2` Performance mode (`STANDARD` vs `PERFORMANCE_OPTIMIZED`), high-memory REPL, `disable_auto_optimization` | `resources/jobs.yml`, `tests/unit/section_1/test_subpoint_1_10_serverless_config_sabotage.py` |
+| **1.11** | Develop unit and integration tests using `assertDataFrameEqual`, `assertSchemaEqual`, `DataFrame.transform`, and `pytest` | `1.11.1` Testing PySpark transformations with `assertDataFrameEqual` and `pytest`; `1.11.2` Running Databricks tests: unit tests, notebook tests, and pipeline integration tests | `tests/conftest.py`, `tests/integration/section_1/test_subpoint_1_11_pyspark_testing_sabotage.py` |
+| **1.12** | Apply Structured Streaming stateful-processing semantics (watermarks, output modes, `foreachBatch`, checkpoints) | `1.12.1` Watermarks, state store cleanup, output modes, idempotent `foreachBatch` (`txnAppId`, `txnVersion`), and checkpoints | `tests/integration/section_1/test_subpoint_1_12_stateful_streaming_sabotage.py` |
 
 ---
 
@@ -358,7 +358,7 @@ FROM STREAM read_files(
 #### All 6 `run_if` Dependency Policies:
 | `run_if` Enum | When the Downstream Task Runs | Typical Production Use Case |
 |---|---|---|
-| **`ALL_SUCCESS`** *(Default)* | All direct parent tasks succeeded. | Standard Bronze $\rightarrow$ Silver $\rightarrow$ Gold pipeline progression. |
+| **`ALL_SUCCESS`** *(Default)* | All direct parent tasks succeeded. | Standard Bronze → Silver → Gold pipeline progression. |
 | **`AT_LEAST_ONE_SUCCESS`** | At least one parent task succeeded. | Merging outputs after an `If/Else` branch where one branch succeeded and the other was skipped. |
 | **`NONE_FAILED`** | All parent tasks either succeeded or were skipped (zero failures). | Downstream step after optional conditional branches. |
 | **`ALL_DONE`** | All parent tasks finished in **any** state (`SUCCESS`, `FAILED`, `SKIPPED`, `UPSTREAM_FAILED`). | **Cleanup, audit logging, and resource teardown tasks.** |
@@ -407,9 +407,9 @@ FROM STREAM read_files(
 2. **Handling Upstream `UPDATE` and `DELETE` on Streaming Tables:**
    - By default, if someone runs `DELETE` or `UPDATE` on `bronze.events`, a downstream `STREAMING TABLE` reading `FROM STREAM(bronze.events)` **fails immediately** because append-only streams cannot retract already-emitted downstream rows.
    - **3 Exam Solutions depending on business requirements:**
-     1. *Need downstream aggregations to reflect the updates/deletes accurately?* $\rightarrow$ Change the downstream table to a **`MATERIALIZED VIEW`**.
-     2. *Need row-level upserts/deletes mirrored into a Silver target table?* $\rightarrow$ Use **`AUTO CDC INTO`** (`Subpoint 1.7`).
-     3. *Want the downstream append-only Streaming Table to simply ignore the upstream delete/update commits and keep running?* $\rightarrow$ Pass **`skipChangeCommits => true`** (SQL) or **`.option("skipChangeCommits", "true")`** (PySpark).
+     1. *Need downstream aggregations to reflect the updates/deletes accurately?* → Change the downstream table to a **`MATERIALIZED VIEW`**.
+     2. *Need row-level upserts/deletes mirrored into a Silver target table?* → Use **`AUTO CDC INTO`** (`Subpoint 1.7`).
+     3. *Want the downstream append-only Streaming Table to simply ignore the upstream delete/update commits and keep running?* → Pass **`skipChangeCommits => true`** (SQL) or **`.option("skipChangeCommits", "true")`** (PySpark).
 
 ---
 
@@ -554,9 +554,9 @@ dlt.create_auto_cdc_flow(
 
 | Setting / Feature | Where It Is Configured | Options & Behavior | Exam Scenario |
 |---|---|---|---|
-| **Performance Mode (`performance_target`)** | **Serverless Lakeflow Jobs & Pipelines ONLY** *(Not available on interactive notebooks!)* | • **`PERFORMANCE_OPTIMIZED` (Default):** Sub-second / warm-pool startup for time-sensitive SLAs.<br>• **`STANDARD`:** Delays startup by up to **4–6 minutes** in exchange for **significantly lower DBU cost**. | *"Nightly batch job runs at 01:00 AM, dashboard read at 09:00 AM, minimize cost"* $\rightarrow$ **`performance_target: STANDARD`**. |
-| **High-Memory Notebook Option** | Notebook **Environment side panel** (or task environment spec) | Increases the Python driver / REPL memory allocation for notebooks that must bring a large dataset into local driver memory (e.g., Pandas/matplotlib or `.collect()`). *(Note: `spark.conf.set("spark.driver.memory", ...)` fails on Serverless!).* | *"Serverless notebook task fails with Driver OOM when collecting a required summary dataset"* $\rightarrow$ **Enable High-Memory option in the Environment panel**. |
-| **Auto-Optimization Retries (`disable_auto_optimization`)** | Task level in **Serverless Lakeflow Jobs** (`disable_auto_optimization: true`) | By default, Serverless auto-optimization automatically retries tasks on transient failures. For **non-idempotent** tasks (calling an external payment API, sending emails, inserting into a non-transactional table), automatic retries cause **duplicate side effects**. | *"Serverless job task calls an external billing API and generated duplicate invoices after a transient error"* $\rightarrow$ **`disable_auto_optimization: true`**. |
+| **Performance Mode (`performance_target`)** | **Serverless Lakeflow Jobs & Pipelines ONLY** *(Not available on interactive notebooks!)* | • **`PERFORMANCE_OPTIMIZED` (Default):** Sub-second / warm-pool startup for time-sensitive SLAs.; **`STANDARD`:** Delays startup by up to **4–6 minutes** in exchange for **significantly lower DBU cost**. | *"Nightly batch job runs at 01:00 AM, dashboard read at 09:00 AM, minimize cost"* → **`performance_target: STANDARD`**. |
+| **High-Memory Notebook Option** | Notebook **Environment side panel** (or task environment spec) | Increases the Python driver / REPL memory allocation for notebooks that must bring a large dataset into local driver memory (e.g., Pandas/matplotlib or `.collect()`). *(Note: `spark.conf.set("spark.driver.memory", ...)` fails on Serverless!).* | *"Serverless notebook task fails with Driver OOM when collecting a required summary dataset"* → **Enable High-Memory option in the Environment panel**. |
+| **Auto-Optimization Retries (`disable_auto_optimization`)** | Task level in **Serverless Lakeflow Jobs** (`disable_auto_optimization: true`) | By default, Serverless auto-optimization automatically retries tasks on transient failures. For **non-idempotent** tasks (calling an external payment API, sending emails, inserting into a non-transactional table), automatic retries cause **duplicate side effects**. | *"Serverless job task calls an external billing API and generated duplicate invoices after a transient error"* → **`disable_auto_optimization: true`**. |
 
 ---
 
@@ -615,7 +615,7 @@ dlt.create_auto_cdc_flow(
 |---|---|---|---|
 | **Checkpoint (`checkpointLocation`)** | **Cloud / UC Volume Disk** (`/Volumes/.../_checkpoints/`) | **The Bookmark on Disk:** Records which source files/offsets have been processed (`offsets/`), committed (`commits/`), and snapshots of state (`state/`). | If lost or deleted, the stream forgets its progress and re-processes all data from scratch! |
 | **State Store** | **Compute Memory (JVM Heap or RocksDB SSD)** | **The Working Notepad in RAM:** Holds active keys/windows waiting for duplicates, late matches, or window completion. | If never cleaned up, grows forever ("unbounded state") until the cluster crashes with `OutOfMemoryError` (`OOM`). |
-| **Watermark (`.withWatermark("event_ts", "2 hours")`)** | **Logical Event-Time Cutoff Timer** | **The RAM Eraser Rule:** Tracks `max(event_ts) - 2 hours`. Tells Spark: *"Drop any late events older than this cutoff, finalize results, and purge old keys from the State Store."* | Without a watermark on stateful operations, old keys stay in the State Store forever $\rightarrow$ `OOM`. |
+| **Watermark (`.withWatermark("event_ts", "2 hours")`)** | **Logical Event-Time Cutoff Timer** | **The RAM Eraser Rule:** Tracks `max(event_ts) - 2 hours`. Tells Spark: *"Drop any late events older than this cutoff, finalize results, and purge old keys from the State Store."* | Without a watermark on stateful operations, old keys stay in the State Store forever → `OOM`. |
 
 > **High-Yield Exam Nuance — RocksDB State Store Provider:**
 > When a stateful stream tracks **tens of millions of keys**, the default JVM heap state store suffers from high Garbage Collection (GC) overhead and `OOM`. Enable the **RocksDB State Store** (`spark.conf.set("spark.sql.streaming.stateStore.providerClass", "com.databricks.sql.streaming.state.RocksDBStateStoreProvider")`) to manage state in native off-heap memory and local SSD disk!
@@ -623,7 +623,7 @@ dlt.create_auto_cdc_flow(
 #### 3. Output Modes (`append`, `update`, `complete`) & When Results Emit:
 | Output Mode | How It Works | Supported Queries & Watermark Interaction |
 |---|---|---|
-| **`append`** *(Default)* | Writes **only newly finalized rows** that will never change again. | • Stateless queries: emits immediately every batch.<br>• Windowed `groupBy`: **requires a watermark** and waits until the watermark passes the end of the window before emitting! |
+| **`append`** *(Default)* | Writes **only newly finalized rows** that will never change again. | • Stateless queries: emits immediately every batch.; Windowed `groupBy`: **requires a watermark** and waits until the watermark passes the end of the window before emitting! |
 | **`update`** | Writes **only rows that were updated** in the current micro-batch. | Useful when writing stateful aggregations to a downstream upsert sink via `foreachBatch` + `MERGE INTO`. |
 | **`complete`** | Rewrites the **entire aggregation result table** on every single micro-batch. | Only supported on aggregation queries (`groupBy`). Does **not** purge state with watermarks because it must remember all historical totals. |
 
@@ -801,13 +801,13 @@ This section captures **all 19 engineering questions you asked during Section 1*
 
 ## Rapid-Fire 10-Second Exam Elimination Rules (Section 1 Master Checklist)
 
-1. **See `dbfs:/mnt/`, `hive_metastore`, `input_file_name()`** $\rightarrow$ ❌ Eliminate immediately! Choose **Unity Catalog 3-level namespaces**, **UC Volumes (`/Volumes/...`)**, and **`_metadata.file_path`**.
-2. **See `APPLY CHANGES INTO` or `dlt.apply_changes`** $\rightarrow$ ❌ Eliminate immediately! Choose **`CREATE FLOW ... AS AUTO CDC INTO`** or **`dlt.create_auto_cdc_flow`**.
-3. **See `checkpointLocation` or `cloudFiles.schemaLocation` inside a `@dlt.table` / Lakeflow Pipeline** $\rightarrow$ ❌ Eliminate immediately! Lakeflow Pipelines manage checkpoints and schema locations automatically.
-4. **See `%pip install` inside a multi-table Lakeflow Pipeline notebook** $\rightarrow$ ❌ Eliminate immediately! Declare dependencies in the pipeline configuration (`pipelines.pip.requirements` / `dependencies`).
-5. **See `.cache()`, `.persist()`, `CACHE TABLE`, `.rdd`, or `spark.sparkContext` on Serverless** $\rightarrow$ ❌ Eliminate immediately! Unsupported on Spark Connect / Serverless.
-6. **See `spark.conf.set("spark.driver.memory", ...)` on Serverless** $\rightarrow$ ❌ Eliminate immediately! Use the **High-Memory option** in the Notebook Environment side panel.
-7. **See a scheduled overnight Serverless job where startup latency doesn't matter and cost must be minimized** $\rightarrow$ ✅ Choose **`performance_target: STANDARD`**.
-8. **See a non-idempotent Serverless job task (external API call / invoice creation) duplicating actions on failure** $\rightarrow$ ✅ Choose **`disable_auto_optimization: true`**.
-9. **See `for_each_task` with plural `"{{inputs}}"` or nested `for_each_task`** $\rightarrow$ ❌ Eliminate immediately! Use singular **`"{{input}}"`** and `concurrency` + **Repair Run**.
-10. **See `foreachBatch` writing to multiple Delta tables needing exactly-once idempotency** $\rightarrow$ ✅ Choose **`.option("txnAppId", app_id).option("txnVersion", batch_id)`**.
+1. **See `dbfs:/mnt/`, `hive_metastore`, `input_file_name()`** → ❌ Eliminate immediately! Choose **Unity Catalog 3-level namespaces**, **UC Volumes (`/Volumes/...`)**, and **`_metadata.file_path`**.
+2. **See `APPLY CHANGES INTO` or `dlt.apply_changes`** → ❌ Eliminate immediately! Choose **`CREATE FLOW ... AS AUTO CDC INTO`** or **`dlt.create_auto_cdc_flow`**.
+3. **See `checkpointLocation` or `cloudFiles.schemaLocation` inside a `@dlt.table` / Lakeflow Pipeline** → ❌ Eliminate immediately! Lakeflow Pipelines manage checkpoints and schema locations automatically.
+4. **See `%pip install` inside a multi-table Lakeflow Pipeline notebook** → ❌ Eliminate immediately! Declare dependencies in the pipeline configuration (`pipelines.pip.requirements` / `dependencies`).
+5. **See `.cache()`, `.persist()`, `CACHE TABLE`, `.rdd`, or `spark.sparkContext` on Serverless** → ❌ Eliminate immediately! Unsupported on Spark Connect / Serverless.
+6. **See `spark.conf.set("spark.driver.memory", ...)` on Serverless** → ❌ Eliminate immediately! Use the **High-Memory option** in the Notebook Environment side panel.
+7. **See a scheduled overnight Serverless job where startup latency doesn't matter and cost must be minimized** → ✅ Choose **`performance_target: STANDARD`**.
+8. **See a non-idempotent Serverless job task (external API call / invoice creation) duplicating actions on failure** → ✅ Choose **`disable_auto_optimization: true`**.
+9. **See `for_each_task` with plural `"{{inputs}}"` or nested `for_each_task`** → ❌ Eliminate immediately! Use singular **`"{{input}}"`** and `concurrency` + **Repair Run**.
+10. **See `foreachBatch` writing to multiple Delta tables needing exactly-once idempotency** → ✅ Choose **`.option("txnAppId", app_id).option("txnVersion", batch_id)`**.

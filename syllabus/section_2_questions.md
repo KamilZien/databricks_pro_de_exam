@@ -26,7 +26,7 @@ Which configuration option should the engineer add to the `spark.readStream.form
 > When a Structured Streaming query reads from Kafka, it records the next expected offset per partition in its `checkpointLocation`. If Kafka's topic retention policy deletes messages before the stream reads them, Spark detects data loss and raises an exception by default (`failOnDataLoss: "true"`). Adding `.option("failOnDataLoss", "false")` instructs Spark to log a warning and proceed reading from the oldest available offset instead of crashing. `startingOffsets` (Option A) is only evaluated on initial stream startup without a checkpoint, and deleting the checkpoint (Option D) re-reads all available data from scratch, violating exactly-once stream semantics.
 
 > **🎯 10-Second Elimination Rule:**  
-> "Kafka offset out of range / expired retention error on stream restart" $\rightarrow$ `.option("failOnDataLoss", "false")`.
+> "Kafka offset out of range / expired retention error on stream restart" → `.option("failOnDataLoss", "false")`.
 
 ---
 
@@ -46,7 +46,7 @@ Which Delta Lake feature and configuration should the engineer implement?
 > Delta Universal Format (UniForm) automatically generates Apache Iceberg (and Hudi) metadata files alongside Delta Lake transaction logs without rewriting or copying the underlying Parquet data files. External query engines like Amazon Athena, Snowflake, and Apache Trino can read the Iceberg metadata directly while Databricks workloads continue querying Delta Lake, achieving 100% shared storage with zero data duplication.
 
 > **🎯 10-Second Elimination Rule:**  
-> "Read Delta tables from Athena / Trino as Iceberg without duplicating data or pipelines" $\rightarrow$ Universal Format (UniForm) via `'delta.universalFormat.enabledFormats' = 'iceberg'`.
+> "Read Delta tables from Athena / Trino as Iceberg without duplicating data or pipelines" → Universal Format (UniForm) via `'delta.universalFormat.enabledFormats' = 'iceberg'`.
 
 ---
 
@@ -120,7 +120,7 @@ Which Delta Lake table feature should the engineer verify is enabled on the targ
 > Deletion Vectors (`delta.enableDeletionVectors = true`) decouple row deletion and updates from file rewriting. When rows are modified or deleted, Delta writes a small bitmap file tracking the deleted row offsets instead of rewriting the entire Parquet file, drastically reducing write amplification, latency, and cloud storage costs. Option A mentions `ZORDER BY` (deprecated in favor of Liquid Clustering), Option C deals with file sizes on initial write, and Option D exposes row-level changes for downstream consumers.
 
 > **🎯 10-Second Elimination Rule:**  
-> "Cure write amplification on updates and deletes" $\rightarrow$ Deletion Vectors (`delta.enableDeletionVectors = true`).
+> "Cure write amplification on updates and deletes" → Deletion Vectors (`delta.enableDeletionVectors = true`).
 
 ---
 
@@ -146,7 +146,7 @@ Which Databricks capability should the data engineer implement?
 > Lakeflow Connect is Databricks' native managed CDC ingestion service. It connects directly to relational databases (PostgreSQL, MySQL, SQL Server, Oracle), takes an initial baseline snapshot, continuously streams WAL/binlog mutations, and handles schema evolution automatically without requiring external Kafka or Debezium infrastructure. JDBC polling (Option A) misses hard deletes, and self-hosted Debezium (Option B) incurs unnecessary management overhead.
 
 > **🎯 10-Second Elimination Rule:**  
-> "Native zero-code relational database CDC ingestion with initial snapshot + WAL stream" $\rightarrow$ **Lakeflow Connect**.
+> "Native zero-code relational database CDC ingestion with initial snapshot + WAL stream" → **Lakeflow Connect**.
 
 ---
 
@@ -166,7 +166,7 @@ What is the recommended Databricks architecture to securely manage authenticatio
 > In Unity Catalog, external database authentication is governed via securable **Connection** objects (`CREATE CONNECTION ...`) that retrieve secrets from Databricks Secret Scopes (`secret('scope', 'key')`). This decouples credentials from code, ensures encryption at rest and in transit, and allows administrators to control access using Unity Catalog ACLs (`GRANT USE CONNECTION`). Storing credentials in YAML (Option A), Spark session configs (Option C), or cluster init scripts (Option D) violate enterprise security policies.
 
 > **🎯 10-Second Elimination Rule:**  
-> "Secure external database credentials in Unity Catalog" $\rightarrow$ Unity Catalog **Connection** (`CREATE CONNECTION`) + **Databricks Secret Scope**.
+> "Secure external database credentials in Unity Catalog" → Unity Catalog **Connection** (`CREATE CONNECTION`) + **Databricks Secret Scope**.
 
 ---
 
@@ -192,7 +192,7 @@ Which procedure correctly provisions access for each partner while adhering to D
 > - Databricks-to-Open (D2O) provisions external, non-Databricks clients via an activation URL from which the recipient downloads a credential profile JSON file containing a temporary bearer token and HTTPS endpoint.
 
 > **🎯 10-Second Elimination Rule:**  
-> "Partner has Databricks UC" $\rightarrow$ D2D with Sharing ID (no credential files). "Partner has non-Databricks client" $\rightarrow$ D2O with bearer token file.
+> "Partner has Databricks UC" → D2D with Sharing ID (no credential files). "Partner has non-Databricks client" → D2O with bearer token file.
 
 ---
 
@@ -217,7 +217,7 @@ Which Databricks feature should the data architect implement to fulfill this req
 > Databricks Clean Rooms provides a privacy-preserving environment where multiple participants can analyze joint data assets without sharing raw data with one another. Clean Rooms enforces strict governance: raw rows cannot be queried directly or exported, participants can only run approved aggregation queries, and differential privacy guarantees prevent re-identification of individuals. Standard OpenSharing (Option A) and Dynamic Views (Option C) provide access to table rows, violating the strict privacy mandate.
 
 > **🎯 10-Second Elimination Rule:**  
-> "Collaborate on joint data without either party seeing raw rows/PII" $\rightarrow$ **Databricks Clean Rooms**.
+> "Collaborate on joint data without either party seeing raw rows/PII" → **Databricks Clean Rooms**.
 
 ---
 
@@ -261,7 +261,7 @@ Which SQL statement must the architect execute in Databricks to map the external
 > Lakehouse Federation maps an external database into Unity Catalog's 3-level namespace using the `CREATE FOREIGN CATALOG <catalog_name> USING CONNECTION <connection_name> OPTIONS (database '<db_name>');` syntax. Keywords such as `EXTERNAL CATALOG`, `TYPE FEDERATED`, or `LINKED CATALOG` are exam distractors.
 
 > **🎯 10-Second Elimination Rule:**  
-> "Map external database in Lakehouse Federation" $\rightarrow$ **`CREATE FOREIGN CATALOG ... USING CONNECTION ... OPTIONS (...)`**.
+> "Map external database in Lakehouse Federation" → **`CREATE FOREIGN CATALOG ... USING CONNECTION ... OPTIONS (...)`**.
 
 ---
 
@@ -289,7 +289,7 @@ Why did this query execute with minimal network I/O and low execution latency?
 > In Lakehouse Federation (Query Federation), the Databricks Catalyst optimizer performs **Query Pushdown**: it pushes column projections, `WHERE` filter predicates, `LIMIT`s, and supported aggregations/joins down to the remote database engine in its native SQL dialect. Only the filtered/aggregated result rows travel across the network back to Databricks. Conversely, if a query applies a custom local Python UDF in its filter, pushdown is blocked (`FULL_SCAN_CLIENT_FILTER`) and all rows must be fetched over the network for client-side evaluation.
 
 > **🎯 10-Second Elimination Rule:**  
-> "Fast federated query with minimal rows transferred over network" $\rightarrow$ **Catalyst Query Pushdown** to the remote database engine.
+> "Fast federated query with minimal rows transferred over network" → **Catalyst Query Pushdown** to the remote database engine.
 
 
 

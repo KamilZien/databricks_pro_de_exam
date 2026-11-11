@@ -129,7 +129,7 @@ Which implementation strategy should the engineer choose?
 > SQL UDFs registered in Unity Catalog are natively inlined and compiled by the Catalyst optimizer and Photon C++ execution engine. They incur zero serialization overhead. Standard Python UDFs (Option A) suffer from row-by-row pickle serialization, Option C refers to a non-existent Spark configuration, and RDD operations (Option D) are strictly forbidden on Serverless compute / Spark Connect.
 
 > **🎯 10-Second Elimination Rule:**  
-> Look for Photon acceleration $\rightarrow$ must be native Spark SQL or Unity Catalog SQL UDF. Eliminate any option mentioning RDDs (Serverless Law 3) or fake Spark confs.
+> Look for Photon acceleration → must be native Spark SQL or Unity Catalog SQL UDF. Eliminate any option mentioning RDDs (Serverless Law 3) or fake Spark confs.
 
 ---
 
@@ -174,7 +174,7 @@ Which Auto Loader configuration should the engineer implement?
 > Setting `cloudFiles.schemaEvolutionMode = "rescue"` prevents the schema from evolving (adding new columns) while ensuring zero data loss. Any unexpected columns or records with mismatched data types (such as non-numeric strings in numeric columns) are captured as JSON in the automatically appended `_rescued_data` column. `addNewColumns` (Option A) modifies the schema, `failOnNewSchema` (Option C) halts pipeline execution, and `none` (Option D) drops unknown fields.
 
 > **🎯 10-Second Elimination Rule:**  
-> "Schema remains strictly fixed" + "No data permanently lost or dropped" $\rightarrow$ `schemaEvolutionMode = "rescue"` and `_rescued_data`.
+> "Schema remains strictly fixed" + "No data permanently lost or dropped" → `schemaEvolutionMode = "rescue"` and `_rescued_data`.
 
 ---
 
@@ -198,7 +198,7 @@ What feedback should the senior architect provide according to Databricks best p
 > In Lakeflow Pipelines (formerly Delta Live Tables), the runtime execution engine fully manages the storage location for checkpointing, transaction logs, and internal streaming state. Manually configuring `checkpointLocation` or `cloudFiles.schemaLocation` inside a Lakeflow pipeline is an exam anti-pattern and triggers an analysis/validation error.
 
 > **🎯 10-Second Elimination Rule:**  
-> Eliminate any option containing DBFS mounts (Option A). Eliminate cloud storage direct credential paths (Option C). Remember Law 4: Lakeflow Pipelines manage checkpoints automatically $\rightarrow$ remove `checkpointLocation`.
+> Eliminate any option containing DBFS mounts (Option A). Eliminate cloud storage direct credential paths (Option C). Remember Law 4: Lakeflow Pipelines manage checkpoints automatically → remove `checkpointLocation`.
 
 ---
 
@@ -275,7 +275,7 @@ Which architecture should the engineer deploy?
 > A Materialized View is designed for query-driven, pre-computed analytical aggregations and window functions that refresh on a scheduled trigger (such as daily before 8:00 AM). Ingesting raw files into a Streaming Table via Auto Loader ensures efficient incremental ingestion, while refreshing the Materialized View once per day eliminates the massive unnecessary compute costs of running continuous streaming aggregations 24/7 for a dashboard checked only once daily.
 
 > **🎯 10-Second Elimination Rule:**  
-> Identify the reporting frequency: "Checked once a day" $\rightarrow$ eliminate continuous streaming options (Option A & D). Eliminate Option C because `.rdd` violates Serverless compute constraints (Law 3).
+> Identify the reporting frequency: "Checked once a day" → eliminate continuous streaming options (Option A & D). Eliminate Option C because `.rdd` violates Serverless compute constraints (Law 3).
 
 ---
 
@@ -405,7 +405,7 @@ Which framework should the data engineering team choose to implement this worklo
 > When a streaming workload requires writing to arbitrary external systems (such as publishing to an external Kafka topic, writing to a Redis cache, or dispatching HTTP requests to a REST API), Spark Structured Streaming with `foreachBatch(...)` provides the necessary granular control to instantiate custom connection pools and execute arbitrary Python logic per micro-batch. Lakeflow Declarative Pipelines are designed for governed Delta/Iceberg tables in Unity Catalog and do not support arbitrary third-party outbound sink connections.
 
 > **🎯 10-Second Elimination Rule:**  
-> Look for "arbitrary REST API call" or "write to external Kafka topic" $\rightarrow$ must be Spark Structured Streaming with `foreachBatch`.
+> Look for "arbitrary REST API call" or "write to external Kafka topic" → must be Spark Structured Streaming with `foreachBatch`.
 
 ---
 
@@ -500,7 +500,7 @@ Which configuration should the engineer choose?
 > Serverless compute for Lakeflow Jobs and Pipelines offers two performance modes: `PERFORMANCE_OPTIMIZED` (default, warm pool for low startup latency) and `STANDARD` (up to ~70% cost reduction with a 4–6 minute cold start). For scheduled overnight jobs without tight startup SLAs, `STANDARD` mode minimizes DBU expenditure. Standard mode is not available for interactive notebooks (Option D).
 
 > **🎯 10-Second Elimination Rule:**  
-> "Scheduled batch + minimize cost + startup delay acceptable" $\rightarrow$ `STANDARD` mode on the job. Eliminate interactive notebooks with Standard mode (Option D) and all-purpose clusters (Option C).
+> "Scheduled batch + minimize cost + startup delay acceptable" → `STANDARD` mode on the job. Eliminate interactive notebooks with Standard mode (Option D) and all-purpose clusters (Option C).
 
 ---
 
@@ -520,7 +520,7 @@ What should the engineer do?
 > Serverless Lakeflow Jobs automatically retry failed tasks as part of auto-optimization. When a task is non-idempotent (e.g., triggering payments, invoices, or external webhooks that should run at most once), engineers must disable auto-optimized retries (`disable_auto_optimization: true`) at the task level to prevent duplicate side effects.
 
 > **🎯 10-Second Elimination Rule:**  
-> "Non-idempotent task + duplicate side effects on failure" $\rightarrow$ disable auto-optimized retries (`disable_auto_optimization: true`).
+> "Non-idempotent task + duplicate side effects on failure" → disable auto-optimized retries (`disable_auto_optimization: true`).
 
 ---
 
@@ -603,7 +603,7 @@ Which configuration inside `process_batch(batch_df, batch_id)` ensures that retr
 > In Structured Streaming, `foreachBatch` provides at-least-once guarantees by default. To achieve exactly-once idempotent writes to Delta Lake tables inside `foreachBatch`, each target table write must specify a unique application identifier (`txnAppId`) and the micro-batch ID (`txnVersion = batch_id`). Delta Lake records `(txnAppId, txnVersion)` in its transaction log (`_delta_log`) and automatically skips duplicate writes if a micro-batch is re-executed.
 
 > **🎯 10-Second Elimination Rule:**  
-> "`foreachBatch` + prevent duplicate Delta writes on retry" $\rightarrow$ `.option("txnAppId", ...).option("txnVersion", batch_id)`. Eliminate `.cache()` (Serverless Law 3 violation).
+> "`foreachBatch` + prevent duplicate Delta writes on retry" → `.option("txnAppId", ...).option("txnVersion", batch_id)`. Eliminate `.cache()` (Serverless Law 3 violation).
 
 ---
 

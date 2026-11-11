@@ -11,11 +11,11 @@
 
 | # | Official Exam Objective | CertSafari Sub-Lessons | Repo Implementation |
 |---|---|---|---|
-| **2.1** | Develop data ingestion pipelines to ingest Delta Lake, Parquet, JSON, Iceberg, CSV, and Binary from message buses (Kafka, Kinesis, Pub/Sub) and cloud storage | • `2.1.1` Auto Loader & Cloud Storage File Ingestion (JSON, CSV, Parquet, Binary, Delta, Iceberg)<br>• `2.1.2` Streaming Ingestion from Kafka, Kinesis, and Pub/Sub (connectors, offsets, payload decoding) | `src/ingestion/kafka_and_binary_ingest.py`, `tests/integration/section_2/test_subpoint_2_1_multi_format_ingest_sabotage.py` |
-| **2.2** | Configure incremental CDC pipelines using Lakeflow Pipelines with Delta or Iceberg as the target table format | • `2.2.1` Incremental `AUTO CDC` in Lakeflow Pipelines (keys, sequencing, SCD types, Deletion Vectors)<br>• `2.2.2` CDC Target Tables (Delta vs. Iceberg UniForm) & **`AUTO CDC FROM SNAPSHOT`** | `src/ingestion/cdc_uniform_pipeline.py`, `tests/integration/section_2/test_subpoint_2_2_cdc_uniform_sabotage.py` |
-| **2.3** | Configure CDC ingestion pipelines from relational database sources (SQL Server, MySQL, PostgreSQL) using Lakeflow Connect | • `2.3.1` Lakeflow Connect Database Connectors (Ingestion Gateway + Ingestion Pipeline architecture, WAL/binlog setup, UC Connections) | `src/ingestion/lakeflow_connect_ingest.py`, `tests/integration/section_2/test_subpoint_2_3_lakeflow_connect_sabotage.py` |
-| **2.4** | Implement OpenSharing (D2D and Databricks-to-Open) and Clean Rooms for privacy-preserving collaboration | • `2.4.1` OpenSharing: Databricks-to-Databricks (D2D) vs. Databricks-to-Open (D2O)<br>• `2.4.2` Databricks Clean Rooms: Privacy-preserving multi-party collaboration | `src/ingestion/opensharing_and_clean_rooms.py`, `tests/unit/section_2/test_subpoint_2_4_opensharing_sabotage.py` |
-| **2.5** | Configure Lakehouse Federation with governance across supported source systems, applying UC permissions and connection-level credentials | • `2.5.1` Lakehouse Federation: Connections, Foreign Catalogs, Query Federation vs. Catalog Federation, Query Pushdown (`PUSHDOWN` vs. `FULL_SCAN_CLIENT_FILTER`), and UC Permissions | `src/ingestion/lakehouse_federation.py`, `tests/unit/section_2/test_subpoint_2_5_federation_sabotage.py` |
+| **2.1** | Develop data ingestion pipelines to ingest Delta Lake, Parquet, JSON, Iceberg, CSV, and Binary from message buses (Kafka, Kinesis, Pub/Sub) and cloud storage | `2.1.1` Auto Loader & Cloud Storage File Ingestion (JSON, CSV, Parquet, Binary, Delta, Iceberg); `2.1.2` Streaming Ingestion from Kafka, Kinesis, and Pub/Sub | `src/ingestion/kafka_and_binary_ingest.py`, `tests/integration/section_2/test_subpoint_2_1_multi_format_ingest_sabotage.py` |
+| **2.2** | Configure incremental CDC pipelines using Lakeflow Pipelines with Delta or Iceberg as the target table format | `2.2.1` Incremental `AUTO CDC` in Lakeflow Pipelines (keys, sequencing, SCD types, Deletion Vectors); `2.2.2` CDC Target Tables (Delta vs. Iceberg UniForm) & `AUTO CDC FROM SNAPSHOT` | `src/ingestion/cdc_uniform_pipeline.py`, `tests/integration/section_2/test_subpoint_2_2_cdc_uniform_sabotage.py` |
+| **2.3** | Configure CDC ingestion pipelines from relational database sources (SQL Server, MySQL, PostgreSQL) using Lakeflow Connect | `2.3.1` Lakeflow Connect Database Connectors (Ingestion Gateway + Ingestion Pipeline architecture, WAL/binlog setup, UC Connections) | `src/ingestion/lakeflow_connect_ingest.py`, `tests/integration/section_2/test_subpoint_2_3_lakeflow_connect_sabotage.py` |
+| **2.4** | Implement OpenSharing (D2D and Databricks-to-Open) and Clean Rooms for privacy-preserving collaboration | `2.4.1` OpenSharing: Databricks-to-Databricks (D2D) vs. Databricks-to-Open (D2O); `2.4.2` Databricks Clean Rooms: Privacy-preserving multi-party collaboration | `src/ingestion/opensharing_and_clean_rooms.py`, `tests/unit/section_2/test_subpoint_2_4_opensharing_sabotage.py` |
+| **2.5** | Configure Lakehouse Federation with governance across supported source systems, applying UC permissions and connection-level credentials | `2.5.1` Lakehouse Federation: Connections, Foreign Catalogs, Query vs. Catalog Federation, Query Pushdown (`PUSHDOWN` vs. `FULL_SCAN_CLIENT_FILTER`), and UC Permissions | `src/ingestion/lakehouse_federation.py`, `tests/unit/section_2/test_subpoint_2_5_federation_sabotage.py` |
 
 ---
 
@@ -29,7 +29,7 @@
 
 | Format | How to Ingest Incrementally | Key Options & Exam Traps |
 |---|---|---|
-| **JSON** | Auto Loader (`format("cloudFiles")` + `cloudFiles.format = "json"`) | Combine with `parse_json()` $\rightarrow$ **`VARIANT`** (Law 5) or `cloudFiles.inferColumnTypes = "true"`. Captures malformed fields in `_rescued_data`. |
+| **JSON** | Auto Loader (`format("cloudFiles")` + `cloudFiles.format = "json"`) | Combine with `parse_json()` → **`VARIANT`** (Law 5) or `cloudFiles.inferColumnTypes = "true"`. Captures malformed fields in `_rescued_data`. |
 | **CSV** | Auto Loader (`cloudFiles.format = "csv"`) | Use `header = "true"`, `cloudFiles.inferColumnTypes = "true"`, `cloudFiles.schemaHints = "zip_code STRING"`, and `multiLine = "true"` if fields contain embedded newlines. |
 | **Parquet** | Auto Loader (`cloudFiles.format = "parquet"`) | Embedded schema in file footers; `cloudFiles.schemaEvolutionMode = "addNewColumns"` evolves target Delta schema automatically when new Parquet columns appear. |
 | **Binary (`binaryFile`)** | Auto Loader (`cloudFiles.format = "binaryFile"`) or batch `spark.read.format("binaryFile")` | Used for unstructured files (PDFs, images, audio, ZIPs) **up to 2 GB per file**. Always outputs **4 fixed columns**: `path` (`STRING`), `modificationTime` (`TIMESTAMP`), `length` (`LONG`), `content` (`BINARY`). Use `.option("pathGlobFilter", "*.pdf")` and `.option("recursiveFileLookup", "true")`. |
@@ -94,9 +94,9 @@ What if an upstream vendor or legacy mainframe does **not** provide a row-level 
 ```
 - **How `AUTO CDC FROM SNAPSHOT` Works:**
   - Compares the incoming full snapshot against the target table state.
-  - New keys $\rightarrow$ Inserted.
-  - Changed attributes for existing keys $\rightarrow$ Updated (or new SCD2 version opened).
-  - **Keys missing from the new snapshot $\rightarrow$ Automatically treated as DELETED!**
+  - New keys → Inserted.
+  - Changed attributes for existing keys → Updated (or new SCD2 version opened).
+  - **Keys missing from the new snapshot → Automatically treated as DELETED!**
 
 ### 2.2.3 Delta vs. Apache Iceberg (UniForm) as CDC Target Table Formats
 
@@ -177,9 +177,9 @@ OpenSharing shares live data (tables, views, volumes, models) across organizatio
 | Dimension | Databricks-to-Databricks (D2D) | Databricks-to-Open (D2O) |
 |---|---|---|
 | **Recipient Platform** | Another organization (or another account) that **uses Databricks with Unity Catalog**. | Any external non-Databricks tool (**Pandas, Power BI, Tableau, Apache Spark on-prem, Excel**). |
-| **How Recipient is Created** | Using the recipient's **Sharing Identifier** (`<cloud>:<region>:<metastore_uuid>`):<br>`CREATE RECIPIENT partner_a USING ID 'aws:us-west-2:1111...';` | Without a Sharing ID:<br>`CREATE RECIPIENT partner_b;` |
+| **How Recipient is Created** | Using the recipient's **Sharing Identifier** (`CREATE RECIPIENT partner_a USING ID 'aws:us-west-2:1111...';`). | Without a Sharing ID (`CREATE RECIPIENT partner_b;`). |
 | **Authentication Mechanism** | **Direct Unity Catalog Metastore-to-Metastore cryptography.** Zero credential files, zero activation links, zero bearer tokens! | Provider sends a one-time **activation link**; recipient downloads a **credential profile JSON file** (`shareCredentialsVersion`, HTTPS `endpoint`, `bearerToken`, `expirationTime`). |
-| **Token Rotation** | Managed automatically by Databricks platform. | Provider rotates expiring tokens via:<br>`ALTER RECIPIENT partner_b ROTATE TOKEN WITH (expire_in_seconds = 86400);` |
+| **Token Rotation** | Managed automatically by Databricks platform. | Provider rotates expiring tokens via `ALTER RECIPIENT partner_b ROTATE TOKEN WITH (expire_in_seconds = 86400);`. |
 | **What Assets Can Be Shared?** | Tables, Dynamic Views, **Unity Catalog Volumes**, AI Models, Notebooks. | Tabular data (Delta tables & views). |
 
 #### Provider & Recipient SQL Workflow (Memorize for Exam!):
@@ -234,9 +234,14 @@ USING SHARE pharma_corp_provider.finops_partner_share;
 
 #### 1. The 2 Unity Catalog Objects & Required Privileges:
 
-| Step | SQL Command | Unity Catalog Privileges Required |
+| Step | Purpose & SQL Syntax Pattern | Unity Catalog Privileges Required |
 |---|---|---|
-| **Step 1: Create Connection** | ```sql
+| **Step 1: Create Connection** | Stores remote host, port, and secret credentials (`CREATE CONNECTION <conn> TYPE <db_type> OPTIONS (...)`) | **`CREATE CONNECTION`** on the Unity Catalog Metastore. |
+| **Step 2: Create Foreign Catalog** | Mirrors the remote database in UC (`CREATE FOREIGN CATALOG <cat> USING CONNECTION <conn> OPTIONS (database '<db>')`) | **`CREATE FOREIGN CATALOG`** on the Metastore **AND** either ownership of `<conn>` or **`CREATE FOREIGN SECURABLE`** on `<conn>`. |
+| **Step 3: Grant Read Access** | Grants standard UC read access (`GRANT USE CATALOG`, `GRANT USE SCHEMA`, `GRANT SELECT`) | Standard Unity Catalog ACL inheritance (plus row filters / column masks!). |
+
+```sql
+-- Step 1: Create the Unity Catalog Connection
 CREATE CONNECTION snowflake_conn
 TYPE SNOWFLAKE
 OPTIONS (
@@ -246,17 +251,17 @@ OPTIONS (
   password secret('finops_scope', 'sf_pass'),
   sfWarehouse 'COMPUTE_WH'
 );
-``` | **`CREATE CONNECTION`** on the Unity Catalog Metastore. |
-| **Step 2: Create Foreign Catalog** | ```sql
+
+-- Step 2: Create the Foreign Catalog mapped to the external database
 CREATE FOREIGN CATALOG snowflake_dw
 USING CONNECTION snowflake_conn
 OPTIONS (database 'ANALYTICS_PROD');
-``` | **`CREATE FOREIGN CATALOG`** on the Metastore **AND** either ownership of `snowflake_conn` or **`CREATE FOREIGN SECURABLE`** on `snowflake_conn`. |
-| **Step 3: Grant Read Access to Analysts** | ```sql
+
+-- Step 3: Grant Read Access to Analysts in Unity Catalog
 GRANT USE CATALOG ON CATALOG snowflake_dw TO analysts;
 GRANT USE SCHEMA ON SCHEMA snowflake_dw.sales TO analysts;
 GRANT SELECT ON TABLE snowflake_dw.sales.orders TO analysts;
-``` | Standard Unity Catalog ACL inheritance (plus row filters / column masks!). |
+```
 
 #### 2. Query Federation vs. Catalog Federation (High-Yield Exam Nuance!):
 - **Query Federation:** Used for external relational databases and cloud data warehouses (PostgreSQL, MySQL, SQL Server, Snowflake, BigQuery, Redshift). Databricks sends SQL queries to the **external system's compute engine** and streams back results.
@@ -264,24 +269,28 @@ GRANT SELECT ON TABLE snowflake_dw.sales.orders TO analysts;
 
 #### 3. `PUSHDOWN` vs. `FULL_SCAN_CLIENT_FILTER` (Why Some Federated Queries Are Fast and Others Are Slow):
 
-| Execution Mode | Query Pattern Example | What Happens Under the Hood | Network & Performance Impact |
+| Execution Mode | Query Pattern | What Happens Under the Hood | Network & Performance Impact |
 |---|---|---|---|
-| **Query Pushdown (`PUSHDOWN`)** | ```sql
+| **Query Pushdown (`PUSHDOWN`)** | Standard SQL (`WHERE`, `SELECT`, `GROUP BY`, `LIMIT`, standard SQL functions) | Databricks Catalyst translates the `WHERE` filter, column projection, and `GROUP BY` aggregation into native Snowflake/Postgres SQL and pushes them to the remote database. The remote DB filters 100M rows down to 1,000 summary rows. | ⚡ **Fast & Cheap:** Only 1,000 summary rows cross the network. |
+| **Client-Side Filter (`FULL_SCAN_CLIENT_FILTER`)** | Filter calling a custom local Python UDF (`@udf`) that does not exist on the remote database | Because the external Snowflake/PostgreSQL database cannot execute custom local Python bytecode (`@udf`), Catalyst **cannot push down** the filter! Databricks is forced to fetch **all 100,000,000 raw rows** over the network and run the Python filter on the Databricks side. | 🐢 **Slow & Expensive:** Full table scan transferred over the network! *(Fix: Rewrite the filter using native SQL expressions so Catalyst can push it down).* |
+
+```sql
+-- Example A: PUSHDOWN (Fast — evaluated remotely on Snowflake compute)
 SELECT customer_id, SUM(amount)
 FROM snowflake_dw.sales.orders
 WHERE order_date >= '2026-01-01'
 GROUP BY customer_id;
-``` | Databricks Catalyst translates the `WHERE` filter, column projection, and `GROUP BY` aggregation into native Snowflake SQL and pushes them to Snowflake. Snowflake filters 100M rows down to 1,000 summary rows. | ⚡ **Fast & Cheap:** Only 1,000 summary rows cross the network. |
-| **Client-Side Filter (`FULL_SCAN_CLIENT_FILTER`)** | ```python
+```
+
+```python
+# Example B: FULL_SCAN_CLIENT_FILTER (Slow — pulls all 100M rows across network to run Python UDF!)
 @udf("boolean")
 def custom_py_filter(amt):
     return amt > 500
 
 
-df = spark.table(
-    "snowflake_dw.sales.orders"
-).filter(custom_py_filter(col("amount")))
-``` | Because the external Snowflake/PostgreSQL database cannot execute custom local Python bytecode (`@udf`), Catalyst **cannot push down** the filter! Databricks is forced to fetch **all 100,000,000 raw rows** over the network and run the Python filter on the Databricks side. | 🐢 **Slow & Expensive:** Full table scan transferred over the network! *(Fix: Rewrite the filter using native SQL expressions so Catalyst can push it down).* |
+df = spark.table("snowflake_dw.sales.orders").filter(custom_py_filter(col("amount")))
+```
 
 ---
 
@@ -326,11 +335,11 @@ df = spark.table(
 
 ## Rapid-Fire 10-Second Exam Elimination Rules (Section 2 Master Checklist)
 
-1. **See `failOnDataLoss = "false"` on a Kafka stream** $\rightarrow$ ✅ Correct fix when Kafka retention purges unread offsets while a stream was paused.
-2. **See Auto Loader (`cloudFiles`) reading a Delta or Iceberg table directory directly** $\rightarrow$ ❌ Eliminate immediately! Use `spark.readStream.format("delta")` for Delta and Catalog Federation / `format("iceberg")` for Iceberg.
-3. **See external engines (Athena, Trino, Snowflake) needing to read Delta tables as Iceberg without copying data** $\rightarrow$ ✅ Choose **UniForm** (`'delta.universalFormat.enabledFormats' = 'iceberg'`).
-4. **See periodic full table dumps needing SCD Type 1 / Type 2 tracking without change logs** $\rightarrow$ ✅ Choose **`AUTO CDC FROM SNAPSHOT`** (`dlt.create_auto_cdc_from_snapshot_flow`).
-5. **See relational database CDC (PostgreSQL, MySQL, SQL Server) needing zero-code managed ingestion** $\rightarrow$ ✅ Choose **Lakeflow Connect** (Unity Catalog Connection + Ingestion Gateway + Ingestion Pipeline).
-6. **See a Databricks-to-Databricks (D2D) recipient being emailed a `.share` bearer token file** $\rightarrow$ ❌ Eliminate immediately! **D2D uses the recipient's Sharing Identifier (`USING ID`) and never uses credential files**; bearer token files are strictly for **Databricks-to-Open (D2O)**.
-7. **See two companies collaborating on joint data where neither party may view the other's raw rows or PII** $\rightarrow$ ✅ Choose **Databricks Clean Rooms**.
-8. **See `CREATE EXTERNAL CATALOG` or `CREATE FEDERATED CATALOG`** $\rightarrow$ ❌ Eliminate immediately! The official Lakehouse Federation syntax is **`CREATE FOREIGN CATALOG <name> USING CONNECTION <conn> OPTIONS (...)`**.
+1. **See `failOnDataLoss = "false"` on a Kafka stream** → ✅ Correct fix when Kafka retention purges unread offsets while a stream was paused.
+2. **See Auto Loader (`cloudFiles`) reading a Delta or Iceberg table directory directly** → ❌ Eliminate immediately! Use `spark.readStream.format("delta")` for Delta and Catalog Federation / `format("iceberg")` for Iceberg.
+3. **See external engines (Athena, Trino, Snowflake) needing to read Delta tables as Iceberg without copying data** → ✅ Choose **UniForm** (`'delta.universalFormat.enabledFormats' = 'iceberg'`).
+4. **See periodic full table dumps needing SCD Type 1 / Type 2 tracking without change logs** → ✅ Choose **`AUTO CDC FROM SNAPSHOT`** (`dlt.create_auto_cdc_from_snapshot_flow`).
+5. **See relational database CDC (PostgreSQL, MySQL, SQL Server) needing zero-code managed ingestion** → ✅ Choose **Lakeflow Connect** (Unity Catalog Connection + Ingestion Gateway + Ingestion Pipeline).
+6. **See a Databricks-to-Databricks (D2D) recipient being emailed a `.share` bearer token file** → ❌ Eliminate immediately! **D2D uses the recipient's Sharing Identifier (`USING ID`) and never uses credential files**; bearer token files are strictly for **Databricks-to-Open (D2O)**.
+7. **See two companies collaborating on joint data where neither party may view the other's raw rows or PII** → ✅ Choose **Databricks Clean Rooms**.
+8. **See `CREATE EXTERNAL CATALOG` or `CREATE FEDERATED CATALOG`** → ❌ Eliminate immediately! The official Lakehouse Federation syntax is **`CREATE FOREIGN CATALOG <name> USING CONNECTION <conn> OPTIONS (...)`**.
