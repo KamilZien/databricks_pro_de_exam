@@ -80,3 +80,25 @@ STORED AS SCD TYPE 1;
 - `APPLY AS TRUNCATE` is supported **only on SCD Type 1** (cannot truncate historical audit chains in SCD Type 2).
 - `SEQUENCE BY <col>` ensures out-of-order events arriving over the network do not overwrite newer database commits.
 
+---
+
+## Subpoint 2.3: Relational Ingestion with Lakeflow Connect
+
+### 1. What Lakeflow Connect Replaces
+- **Legacy Approach:** Custom Kafka clusters + Debezium CDC containers + brittle JDBC polling scripts (`WHERE updated_at > ...`).
+  - *Problems:* Overloads production OLTP databases, misses hard deletes, and requires heavy infrastructure maintenance.
+- **Lakeflow Connect Approach:** Databricks' **native, zero-code, managed ingestion service** that reads database write-ahead logs (binlog / WAL) directly from **PostgreSQL, MySQL, SQL Server, and Oracle**, as well as enterprise SaaS connectors.
+
+### 2. Two-Phase Snapshot-to-Stream Ingestion
+1. **Phase 1 (Automatic Initial Snapshot):** Lakeflow Connect automatically performs a full baseline table snapshot upon initial launch without requiring manual database dumps.
+2. **Phase 2 (Continuous WAL Streaming):** Seamlessly transitions into streaming incremental binlog/WAL events (`INSERT`, `UPDATE`, `DELETE`) into Bronze/Silver tables.
+
+### 3. Credential Security & Governance
+- Relational sources connect via **Unity Catalog Connection Objects** (`CREATE CONNECTION ...`).
+- Passwords and sensitive connection tokens **must** be stored in **Databricks Secret Scopes** and referenced via `secret('scope', 'key')`—never hardcoded in YAML or notebooks.
+- Access to connections is governed using standard UC permissions (`GRANT USE CONNECTION ON CONNECTION <name> TO <identity>`).
+
+### 4. Automated Schema Evolution
+- When upstream operational databases add, rename, or drop columns, Lakeflow Connect automatically detects the DDL changes and evolves the destination tables without crashing the pipeline.
+
+

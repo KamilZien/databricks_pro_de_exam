@@ -122,3 +122,50 @@ Which Delta Lake table feature should the engineer verify is enabled on the targ
 > **🎯 10-Second Elimination Rule:**  
 > "Cure write amplification on updates and deletes" $\rightarrow$ Deletion Vectors (`delta.enableDeletionVectors = true`).
 
+---
+
+### Subpoint 2.3: Relational Ingestion with Lakeflow Connect
+
+#### Question 2.3.1: Relational CDC Ingestion Architecture
+A data engineering team needs to ingest ongoing transactional changes from an operational **PostgreSQL** database containing 50 million historical rows into Unity Catalog. The solution must:
+1. Capture historical data on initial launch without running a manual database export.
+2. Ingest ongoing `INSERT`, `UPDATE`, and `DELETE` transactions in near real-time by reading the database Write-Ahead Log (WAL).
+3. Automatically adapt to upstream schema changes (such as added or altered columns) without failing the ingestion pipeline.
+4. Minimize infrastructure maintenance by avoiding custom Debezium containers, Kafka clusters, or JDBC polling scripts.
+
+Which Databricks capability should the data engineer implement?
+
+- A) A scheduled Databricks Job running PySpark with `format("jdbc")` and `dbtable = "(SELECT * FROM orders WHERE updated_at > :last_sync)"`.
+- B) A self-hosted Debezium connector on an EC2 instance publishing WAL events to Amazon Kinesis, ingested via Auto Loader.
+- C) **Lakeflow Connect** configured with a Unity Catalog PostgreSQL connection object, an ingestion gateway, and a Lakeflow Declarative Pipeline.
+- D) Direct external table creation using `CREATE EXTERNAL TABLE ... OPTIONS (dbtable "orders")`.
+
+**Correct Answer:** **C**
+
+> **Explanation:**  
+> Lakeflow Connect is Databricks' native managed CDC ingestion service. It connects directly to relational databases (PostgreSQL, MySQL, SQL Server, Oracle), takes an initial baseline snapshot, continuously streams WAL/binlog mutations, and handles schema evolution automatically without requiring external Kafka or Debezium infrastructure. JDBC polling (Option A) misses hard deletes, and self-hosted Debezium (Option B) incurs unnecessary management overhead.
+
+> **🎯 10-Second Elimination Rule:**  
+> "Native zero-code relational database CDC ingestion with initial snapshot + WAL stream" $\rightarrow$ **Lakeflow Connect**.
+
+---
+
+#### Question 2.3.2: Lakeflow Connect Credential Governance
+A cloud security architect is establishing policies for connecting Lakeflow Connect to an on-premises **Microsoft SQL Server** instance for CDC replication. Company compliance strictly forbids embedding database credentials in YAML pipeline files, Git repositories, or hardcoded notebook cells.
+
+What is the recommended Databricks architecture to securely manage authentication for Lakeflow Connect?
+
+- A) Store database username and password as base64-encoded strings inside the Declarative Automation Bundle's `databricks.yml` target variables.
+- B) Create a Unity Catalog **Connection** object (`CREATE CONNECTION ...`) that references database credentials stored securely in a **Databricks Secret Scope**, and grant `USE CONNECTION` to the pipeline identity.
+- C) Pass the SQL Server administrator credentials as dynamic Spark session parameters (`spark.conf.set("spark.sql.connection.password", ...)`) at the beginning of each pipeline update.
+- D) Embed the password in a cluster init script that writes credentials directly to `/etc/environment` on the driver node.
+
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> In Unity Catalog, external database authentication is governed via securable **Connection** objects (`CREATE CONNECTION ...`) that retrieve secrets from Databricks Secret Scopes (`secret('scope', 'key')`). This decouples credentials from code, ensures encryption at rest and in transit, and allows administrators to control access using Unity Catalog ACLs (`GRANT USE CONNECTION`). Storing credentials in YAML (Option A), Spark session configs (Option C), or cluster init scripts (Option D) violate enterprise security policies.
+
+> **🎯 10-Second Elimination Rule:**  
+> "Secure external database credentials in Unity Catalog" $\rightarrow$ Unity Catalog **Connection** (`CREATE CONNECTION`) + **Databricks Secret Scope**.
+
+
