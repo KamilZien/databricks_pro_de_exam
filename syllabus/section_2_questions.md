@@ -219,5 +219,78 @@ Which Databricks feature should the data architect implement to fulfill this req
 > **🎯 10-Second Elimination Rule:**  
 > "Collaborate on joint data without either party seeing raw rows/PII" $\rightarrow$ **Databricks Clean Rooms**.
 
+---
+
+### Subpoint 2.5: Lakehouse Federation with Unity Catalog Governance
+
+#### Question 2.5.1: Lakehouse Federation DDL & Object Hierarchy
+A data architect needs to configure Lakehouse Federation so Databricks users can query tables located in an external **Snowflake** enterprise data warehouse without copying data. 
+
+The security administrator has already created a Unity Catalog Connection named `snowflake_dw_conn` containing valid host, warehouse, and secret credentials.
+
+Which SQL statement must the architect execute in Databricks to map the external Snowflake database `ANALYTICS_PROD` as a queryable catalog in Unity Catalog?
+
+- A)
+  ```sql
+  CREATE EXTERNAL CATALOG snowflake_dw
+  USING CONNECTION snowflake_dw_conn
+  PROPERTIES (db = 'ANALYTICS_PROD');
+  ```
+- B)
+  ```sql
+  CREATE FOREIGN CATALOG snowflake_dw
+  USING CONNECTION snowflake_dw_conn
+  OPTIONS (database 'ANALYTICS_PROD');
+  ```
+- C)
+  ```sql
+  CREATE CATALOG snowflake_dw
+  TYPE FEDERATED
+  CONNECTION snowflake_dw_conn;
+  ```
+- D)
+  ```sql
+  CREATE LINKED CATALOG snowflake_dw
+  FROM CONNECTION snowflake_dw_conn
+  SET DATABASE = 'ANALYTICS_PROD';
+  ```
+
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> Lakehouse Federation maps an external database into Unity Catalog's 3-level namespace using the `CREATE FOREIGN CATALOG <catalog_name> USING CONNECTION <connection_name> OPTIONS (database '<db_name>');` syntax. Keywords such as `EXTERNAL CATALOG`, `TYPE FEDERATED`, or `LINKED CATALOG` are exam distractors.
+
+> **🎯 10-Second Elimination Rule:**  
+> "Map external database in Lakehouse Federation" $\rightarrow$ **`CREATE FOREIGN CATALOG ... USING CONNECTION ... OPTIONS (...)`**.
+
+---
+
+#### Question 2.5.2: Query Pushdown Performance & Optimization Bottlenecks
+A data analyst runs the following query against a federated PostgreSQL table mapped via a Foreign Catalog (`postgres_dw.public.transactions` containing 80 million rows):
+
+```sql
+SELECT transaction_id, customer_id, amount
+FROM postgres_dw.public.transactions
+WHERE transaction_date >= '2026-01-01' AND amount > 500.0;
+```
+
+When checking the Databricks Spark UI Query Profile, the engineer notices the query completed in 1.2 seconds, and only 4,000 rows were transferred over the network from PostgreSQL to Databricks.
+
+Why did this query execute with minimal network I/O and low execution latency?
+
+- A) Unity Catalog automatically replicated the entire 80-million row table to local Databricks SSD disk cache prior to executing the query.
+- B) The Catalyst optimizer performed **Query Pushdown**, translating the `WHERE` filters into native PostgreSQL SQL and executing the filter directly on the PostgreSQL database engine.
+- C) Lakehouse Federation automatically converted the PostgreSQL table into an Apache Iceberg UniForm table behind the scenes.
+- D) The query ran with Deletion Vectors enabled on the PostgreSQL instance.
+
+**Correct Answer:** **B**
+
+> **Explanation:**  
+> In Lakehouse Federation (Query Federation), the Databricks Catalyst optimizer performs **Query Pushdown**: it pushes column projections, `WHERE` filter predicates, `LIMIT`s, and supported aggregations/joins down to the remote database engine in its native SQL dialect. Only the filtered/aggregated result rows travel across the network back to Databricks. Conversely, if a query applies a custom local Python UDF in its filter, pushdown is blocked (`FULL_SCAN_CLIENT_FILTER`) and all rows must be fetched over the network for client-side evaluation.
+
+> **🎯 10-Second Elimination Rule:**  
+> "Fast federated query with minimal rows transferred over network" $\rightarrow$ **Catalyst Query Pushdown** to the remote database engine.
+
+
 
 

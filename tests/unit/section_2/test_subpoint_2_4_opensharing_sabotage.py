@@ -23,7 +23,7 @@ from src.ingestion.opensharing_and_clean_rooms import (
 )
 
 
-@pytest.mark.integration
+@pytest.mark.unit
 def test_opensharing_protocol_and_credential_profile_sabotage():
     """
     Test 1: Verify recipient classification and token validation.
@@ -59,7 +59,7 @@ def test_opensharing_protocol_and_credential_profile_sabotage():
     assert is_insecure_valid is False, "Insecure HTTP endpoint must be rejected!"
 
 
-@pytest.mark.integration
+@pytest.mark.unit
 def test_opensharing_cdf_table_ddl_sabotage():
     """
     Test 2: Verify OpenSharing SQL DDL generation for tables with Change Data Feed.

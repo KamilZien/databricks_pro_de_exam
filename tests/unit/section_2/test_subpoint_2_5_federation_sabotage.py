@@ -21,7 +21,7 @@ from src.ingestion.lakehouse_federation import (
 )
 
 
-@pytest.mark.integration
+@pytest.mark.unit
 def test_foreign_catalog_ddl_syntax_sabotage():
     """
     Test 1: Verify exact Unity Catalog DDL for creating a Foreign Catalog.
@@ -40,7 +40,7 @@ def test_foreign_catalog_ddl_syntax_sabotage():
     assert f"OPTIONS (database '{database_name}')" in ddl
 
 
-@pytest.mark.integration
+@pytest.mark.unit
 def test_query_pushdown_mechanics_sabotage():
     """
     Test 2: Verify Query Pushdown optimization and client-side execution boundaries.
