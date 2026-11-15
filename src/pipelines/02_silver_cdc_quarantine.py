@@ -44,13 +44,23 @@ def define_silver_lakeflow_tables():
         validate_event_records,
     )
 
+    finops_expectations = {
+        "valid_event_id": "event_id IS NOT NULL",
+        "valid_event_type": "event_type IS NOT NULL",
+        "valid_payment_amount": (
+            "(NOT (event_type LIKE 'payment%' OR event_type = 'refund.initiated')) "
+            "OR (amount IS NOT NULL AND amount > 0)"
+        ),
+    }
+
     @dlt.table(
         name="silver_staging",
         comment="Intermediate validated staging table for Silver quarantine split",
         temporary=True,
     )
+    @dlt.expect_all(finops_expectations)
     def silver_staging():
-        return dlt.read_stream(BRONZE_TABLE).transform(extract_silver_fields).transform(validate_event_records)
+        return dlt.read_stream("raw_events_bronze").transform(extract_silver_fields).transform(validate_event_records)
 
     @dlt.table(
         name="clean_events",

@@ -13,6 +13,8 @@ resources:
       libraries:
         - file:
             path: ../src/pipelines/01_bronze_variant.py
+        - file:
+            path: ../src/pipelines/02_silver_cdc_quarantine.py
       configuration:
         spark.databricks.delta.enableDeletionVectors: "true"
         spark.databricks.delta.enableChangeDataFeed: "true"
