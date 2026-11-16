@@ -33,9 +33,31 @@ def _is_lakeflow_context() -> bool:
         return False
 
 
+def _ensure_project_root_on_sys_path() -> None:
+    """Ensure the bundle/project root containing `src/` is on sys.path in Lakeflow & local runs."""
+    import os
+    import sys
+    from pathlib import Path
+
+    candidates = []
+    if "__file__" in globals():
+        candidates.append(Path(__file__).resolve().parent.parent.parent)
+    cwd = Path(os.getcwd()).resolve()
+    candidates.extend([cwd, *cwd.parents])
+
+    for candidate in candidates:
+        if (candidate / "src" / "transformations" / "silver_transforms.py").exists():
+            root_str = str(candidate)
+            if root_str not in sys.path:
+                sys.path.insert(0, root_str)
+            return
+
+
 def define_silver_lakeflow_tables():
     """Declarative definitions for Lakeflow Pipeline deployment."""
     import dlt
+
+    _ensure_project_root_on_sys_path()
 
     from src.transformations.silver_transforms import (
         extract_silver_fields,
@@ -98,6 +120,8 @@ def run_silver_pipeline_standalone(spark) -> dict[str, int]:
     Reads from Bronze table, applies validation transformations,
     and writes to clean and quarantine Silver tables using Liquid Clustering.
     """
+    _ensure_project_root_on_sys_path()
+
     from src.transformations.silver_transforms import (
         extract_silver_fields,
         filter_clean_records,
