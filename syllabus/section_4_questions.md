@@ -68,3 +68,35 @@ What is the correct diagnosis?
 
 - **User Answer:** **A** ✅
 - **Official Rationale:** `processedRowsPerSecond > inputRowsPerSecond` confirms throughput is healthy, but monotonically climbing `stateOperators[0].numRowsTotal` indicates state keys are never being evicted due to a missing or misconfigured watermark.
+
+---
+
+## Official Subpoints 4.2, 4.3 & 4.5 (Gap-Fill)
+
+### Question 4.3.1 — Sharing & Querying the Lakeflow Pipeline Event Log
+A FinOps analyst (who is **not** the pipeline owner and **not** a workspace admin) needs to build a Databricks Lakehouse Alert on data quality expectation failures (`failed_records`) from a production Lakeflow Declarative Pipeline.
+
+What must the data engineer configure so the analyst can query the pipeline's event log, and which `event_type` should the alert query filter on?
+
+- **A.** Grant the analyst `SELECT` on `system.lakeflow.pipeline_event_log` and filter `WHERE event_type = 'job_action'`.
+- **B.** Publish the pipeline's event log to a Unity Catalog Delta table via the `event_log` (`catalog`, `schema`, `name`) setting in `databricks.yml`, grant the analyst `SELECT` on that UC table, and filter **`WHERE event_type = 'flow_progress'`**.
+- **C.** Tell the analyst to run `SELECT * FROM event_log('<pipeline-id>') WHERE event_type = 'update_progress'`, which is readable by all workspace users by default.
+- **D.** Export `DESCRIBE HISTORY` on the target Silver table and filter `WHERE event_type = 'user_action'`.
+
+- **Correct Answer:** **B** ✅
+- **Official Rationale:** `event_log('<pipeline-id>')` is restricted to the pipeline owner and workspace admins by default. Publishing it to a Unity Catalog Delta table via `event_log` (`catalog`, `schema`, `name`) allows granting `SELECT` to analysts, and expectation metrics live in `event_type = 'flow_progress'`.
+
+---
+
+### Question 4.5.1 — Programmatically Extracting Failed Task Stack Traces via Databricks SDK / REST API
+An automated incident bot uses the Databricks Python SDK (`WorkspaceClient()`) to fetch the Python error stack trace (`error_trace`) whenever a 4-task Lakeflow Job fails (`parent_run_id = 44001`). Calling `w.jobs.get_run_output(run_id=44001)` raises an `INVALID_PARAMETER_VALUE` error.
+
+What is the correct SDK / REST API workflow to retrieve the failed task's stack trace?
+
+- **A.** Retry `w.jobs.get_run_output(run_id=44001)` after waiting for `life_cycle_state == 'RUNNING'`.
+- **B.** Call `w.jobs.list_runs(job_id=44001)` because `list_runs` includes full Python `error_trace` strings for all child tasks.
+- **C.** Call `w.pipelines.list_pipeline_events(pipeline_id="44001")` to retrieve the job task traceback.
+- **D.** Call **`w.jobs.get_run(run_id=44001)`** (`GET /api/2.1/jobs/runs/get`), inspect `tasks[]` to find the failed child task's **`task.run_id`** (where `result_state == 'FAILED'`), and pass that child **`task.run_id`** to **`w.jobs.get_run_output(run_id=task.run_id)`**.
+
+- **User Answer:** **D** ✅
+- **Official Rationale:** On multi-task jobs, `runs/get-output` rejects the parent job `run_id`; you must first inspect `tasks[]` via `runs/get` and call `runs/get-output` on the failed child `task.run_id`.
