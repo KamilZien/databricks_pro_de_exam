@@ -1,9 +1,9 @@
 # STATE.md — Persistent Cross-Model Memory & 14-Day Sprint Tracker
 
-> **Last Updated:** 2026-11-19T20:53:00+01:00
+> **Last Updated:** 2026-11-20T18:08:00+01:00
 > **Sprint Progress:** Day 5 of 14
-> **Sprint Phase:** Phase 2 — Security, Governance, CI/CD & Modeling (Sections 6–9)
-> **Active Target:** Section 6: Ensuring Data Security and Compliance (8%) — Official Subpoint 6.1 (Least-Privilege ACLs)
+> **Sprint Phase:** Phase 2 — Governance, CI/CD & Modeling (Sections 7–9)
+> **Active Target:** Section 7: Data Governance (5%) — Official Subpoints 7.1 & 7.2 (UC Tags, Comments & Permission Inheritance)
 > **Gap Backlog:** None! Sections 1–5 are 100% aligned with EXAM_GUIDE.md §2.
 
 ---
@@ -27,8 +27,8 @@
 | **Section 3: Data Manipulation** | 12% | Subpoints 3.1–3.4 Completed (8/8 — 100%) | None — All 4 Subpoints Mastered | ✅ `COMPLETED` |
 | **Section 4: Monitoring and Alerting** | 10% | All Official Subpoints 4.1–4.5 Completed (6/6) | None — Gap-Fill Verified | ✅ `COMPLETED` |
 | **Section 5: Cost & Performance Optimization** | 15% | Subpoints 5.1–5.6 Completed (10/10 — 100%) | None — All 6 Official Subpoints Mastered | ✅ `COMPLETED` |
-| **Section 6: Security and Compliance** | 8% | Ready to Start (Official Subpoint 6.1) | None yet | 🟡 `6.1 NEXT` |
-| **Section 7: Data Governance** | 5% | Queued | None yet | ⬜ Pending |
+| **Section 6: Security and Compliance** | 8% | Official Subpoints 6.1–6.5 Completed (6/6 — 100%) | None — All 5 Subpoints Mastered | ✅ `COMPLETED` |
+| **Section 7: Data Governance** | 5% | Ready to Start (Official Subpoints 7.1–7.2) | None yet | 🟡 `7.1–7.2 NEXT` |
 | **Section 8: Debugging and Deploying** | 10% | Queued | None yet | ⬜ Pending |
 | **Section 9: Data Modeling** | 5% | Queued | None yet | ⬜ Pending |
 
